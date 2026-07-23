@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Price Compare</title>
+<style>
+  :root{
+    --bg:#0d1117; --card:#161b22; --border:#232a30; --border-dash:#2e3840;
+    --tx:#e8edf2; --tx2:#8b98a5;
+    --teal:#2dd4bf; --teal-tx:#062a26;
+    --teal-tint1:#101a17; --teal-tint2:#0f2019; --teal-tint3:#12241f; --teal-tint-border:#1f6f52;
+    --green:#34d399; --amber:#fbbf24;
+    --green-tint:rgba(52,211,153,.15); --amber-tint:rgba(251,191,36,.15);
+    --danger:#f87171; --danger-tint:rgba(248,113,113,.14);
+    --fn:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --sb:env(safe-area-inset-bottom,0px); --st:env(safe-area-inset-top,0px);
+    --nh:60px;
+  }
+  [data-theme="light"]{
+    --bg:#f6f7f9; --card:#ffffff; --border:#e3e6ea; --border-dash:#d6dade;
+    --tx:#111418; --tx2:#5b6672;
+    --teal:#0d9488; --teal-tx:#ffffff;
+    --teal-tint1:#e9f6f4; --teal-tint2:#e3f2ef; --teal-tint3:#daedea; --teal-tint-border:#9ad6cb;
+    --green:#059669; --amber:#b45309;
+    --green-tint:rgba(5,150,105,.12); --amber-tint:rgba(180,83,9,.12);
+    --danger:#dc2626; --danger-tint:rgba(220,38,38,.1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg);color:var(--tx);font-family:var(--fn);}
+  body{min-height:100vh;padding-bottom:calc(var(--nh) + var(--sb) + 10px);}
+  .hidden{display:none !important;}
+  button,input{font-family:var(--fn);}
+
+  .content{max-width:520px;margin:0 auto;padding:0 18px calc(110px + var(--sb));}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + var(--st)) 18px 6px;max-width:520px;margin:0 auto;}
+  .topbar h1{font-size:22px;font-weight:700;}
+  .icon-btn{background:none;border:none;color:var(--tx2);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;}
+  .icon-btn svg{width:22px;height:22px;}
+
+  .detail-header{display:flex;align-items:center;gap:10px;padding:calc(14px + var(--st)) 18px 6px;max-width:520px;margin:0 auto;}
+  .detail-header h1{flex:1;font-size:19px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .measure-pill{display:inline-block;background:var(--teal-tint2);color:var(--teal);border:1px solid var(--teal-tint-border);
+    border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;margin:0 0 14px;}
+
+  .search{width:100%;border:1px solid var(--border);background:var(--card);border-radius:10px;padding:11px 14px;
+    font-size:15px;color:var(--tx);outline:none;margin-bottom:12px;}
+  .search:focus{border-color:var(--teal);}
+
+  .stats-row{display:flex;gap:12px;margin-bottom:6px;}
+  .stat-tile{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+  .stat-tile .num{font-size:24px;font-weight:700;}
+  .stat-tile .lbl{font-size:11.5px;color:var(--tx2);margin-top:2px;text-transform:uppercase;letter-spacing:.3px;}
+
+  .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+  .cat-tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;}
+  .cat-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    font-size:18px;line-height:1;margin-bottom:10px;overflow:hidden;}
+  .emoji-glyph{filter:saturate(.9);}
+  .cat-img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;}
+  .cat-name{font-size:14.5px;font-weight:700;}
+  .cat-count{font-size:12px;color:var(--tx2);margin-top:2px;}
+
+  .search-section-title{font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 6px;}
+  .search-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;
+    cursor:pointer;font-size:14.5px;}
+
+  .chips-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;-webkit-overflow-scrolling:touch;}
+  .chip{flex:0 0 auto;border:1px solid var(--border);background:var(--card);color:var(--tx2);border-radius:999px;
+    padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;}
+  .chip.on{background:var(--teal);border-color:var(--teal);color:var(--teal-tx);font-weight:700;}
+  .chip-dashed{border-style:dashed;border-color:var(--teal);color:var(--teal);background:var(--teal-tint2);font-weight:700;}
+  .cat-picker{display:flex;flex-wrap:wrap;gap:8px;}
+
+  .sort-row{display:flex;justify-content:flex-end;margin-bottom:12px;}
+  .sort-chip{display:flex;align-items:center;gap:4px;}
+
+  .list-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;}
+  .lc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .lc-head{display:flex;align-items:center;gap:10px;min-width:0;}
+  .lc-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:17px;line-height:1;flex:0 0 auto;overflow:hidden;}
+  button.lc-icon{padding:0;font-family:inherit;cursor:pointer;}
+  button.icon-emoji:active{opacity:.7;}
+  .lc-name{font-size:15.5px;font-weight:700;}
+  .lc-meta{font-size:12.5px;color:var(--tx2);margin-top:4px;}
+  .lc-price{font-size:22px;font-weight:700;color:var(--green);margin-top:10px;}
+  .lc-price-empty{font-size:13px;color:var(--tx2);font-weight:500;margin-top:10px;}
+  .lc-winner{font-size:12.5px;color:var(--tx2);margin-top:2px;}
+
+  .pill{display:inline-block;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;}
+  .pill-green{background:var(--green-tint);color:var(--green);}
+  .pill-amber{background:var(--amber-tint);color:var(--amber);}
+
+  .hero-card{background:var(--teal-tint1);border:1px solid var(--teal-tint-border);border-radius:16px;
+    padding:22px 20px;cursor:pointer;margin-bottom:16px;}
+  .hero-label{font-size:15px;font-weight:700;}
+  .hero-sub{font-size:13px;color:var(--tx2);margin-top:2px;}
+  .hero-primary{font-size:30px;font-weight:700;color:var(--green);margin-top:12px;}
+  .hero-secondary{font-size:13px;color:var(--tx2);margin-top:2px;}
+  .hero-card .pill{margin-top:12px;}
+
+  .rank-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);
+    border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;}
+  .rank-row-invalid{opacity:.6;}
+  .rank-num{width:24px;text-align:center;font-size:15px;font-weight:700;color:var(--tx2);flex:0 0 auto;}
+  .rank-main{flex:1;min-width:0;}
+  .rank-label{font-size:14.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rank-sub{font-size:12.5px;color:var(--tx2);margin-top:2px;}
+  .rank-values{text-align:right;flex:0 0 auto;}
+  .rank-primary{font-size:16px;font-weight:700;}
+  .rank-secondary{font-size:11.5px;color:var(--tx2);margin-top:1px;}
+  .rank-values .pill{margin-top:6px;}
+
+  .btn-add{width:100%;border:none;background:var(--teal);color:var(--teal-tx);border-radius:12px;
+    padding:15px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;box-shadow:0 2px 10px rgba(0,0,0,.18);}
+  .btn-add:active{opacity:.85;}
+
+  .seg{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;}
+  .seg-inline{flex:1;max-width:240px;}
+  .scale-toggle{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .scale-lbl{font-size:12px;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;}
+  .seg-btn{flex:1;border:none;background:transparent;color:var(--tx2);font-size:13px;font-weight:500;
+    padding:9px 6px;border-radius:8px;cursor:pointer;}
+  .seg-btn.on{background:var(--teal);color:var(--teal-tx);font-weight:700;}
+  .seg-static{flex:1;text-align:center;padding:9px 6px;color:var(--tx2);font-size:13px;}
+
+  .size-row{display:flex;gap:8px;align-items:stretch;}
+  .size-row input{flex:1;}
+  .size-row .seg{flex:0 0 auto;min-width:120px;}
+
+  .stepper{display:flex;align-items:center;gap:14px;}
+  .step-btn{width:44px;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--card);
+    color:var(--tx);font-size:22px;cursor:pointer;}
+  .step-val{flex:1;text-align:center;font-size:20px;font-weight:700;}
+
+  .preview-box{margin-top:16px;background:var(--teal-tint1);border:1px solid var(--teal-tint-border);
+    border-radius:12px;padding:14px 16px;text-align:center;}
+  .preview-lbl{font-size:12px;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .preview-val{font-size:26px;font-weight:700;color:var(--teal);}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .card h3{font-size:14px;font-weight:700;margin-bottom:10px;}
+  .card p{font-size:13px;color:var(--tx2);line-height:1.5;margin-bottom:10px;}
+  .about-line{margin-bottom:0;}
+  .sync-details{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
+  .sync-details summary{font-size:13px;color:var(--teal);cursor:pointer;font-weight:600;}
+  .sync-details label{display:block;font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;
+    letter-spacing:.4px;margin:14px 0 6px;}
+  .sync-details input[type=text]{width:100%;}
+  .hint{font-size:12.5px;color:var(--tx2);line-height:1.5;}
+  .sync-steps{margin:6px 0 0 18px;} .sync-steps li{margin-bottom:5px;}
+  #syncButtons:not(:empty){margin-top:12px;}
+
+  .cat-manage-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .cat-manage-row:last-child{border-bottom:none;}
+  .cat-manage-row input{flex:1;border:none;background:none;color:var(--tx);font-size:14.5px;padding:4px 0;outline:none;}
+  .cat-manage-count{font-size:12px;color:var(--tx2);flex:0 0 auto;}
+  .add-cat-row{display:flex;gap:8px;margin-top:12px;}
+  .add-cat-row input{flex:1;}
+
+  .sel-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;
+    margin-bottom:8px;cursor:pointer;background:var(--card);}
+  .sel-row.on{border-color:var(--teal);background:var(--teal-tint2);}
+  .sel-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border2);flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--teal-tx);}
+  .sel-row.on .sel-check{background:var(--teal);border-color:var(--teal);}
+  .sel-main{flex:1;min-width:0;}
+  .sel-name{font-size:14.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sel-meta{font-size:12px;color:var(--tx2);margin-top:2px;}
+
+  .emoji-or{text-align:center;font-size:12px;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 12px;}
+  .emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+  .emoji-cell{aspect-ratio:1;border:1px solid var(--border);border-radius:10px;background:var(--bg);
+    font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .emoji-cell:active{background:var(--teal-tint2);border-color:var(--teal);}
+  .preview-note{font-size:12px;color:var(--tx2);margin-top:5px;}
+  .disc-tag{color:var(--teal);font-weight:700;}
+  .disc-strike{opacity:.55;}
+
+  input[type=text],input[type=number]{border:1px solid var(--border);border-radius:10px;background:var(--bg);
+    padding:11px 12px;font-size:15px;color:var(--tx);outline:none;}
+  input[type=text]:focus,input[type=number]:focus{border-color:var(--teal);}
+
+  .btn{border:none;border-radius:10px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer;}
+  .btn-primary{background:var(--teal);color:var(--teal-tx);}
+  .btn-outline{background:var(--card);color:var(--tx);border:1px solid var(--border);}
+  .btn-block{width:100%;display:block;}
+  .btn-danger{background:var(--danger-tint);color:var(--danger);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .btn-row{display:flex;gap:10px;}
+  .btn-row .btn{flex:1;}
+
+  .empty{padding:36px 10px;text-align:center;color:var(--tx2);font-size:14px;line-height:1.5;}
+
+  nav#navbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--card);border-top:1px solid var(--border);
+    display:flex;height:calc(var(--nh) + var(--sb));padding-bottom:var(--sb);}
+  nav#navbar button{flex:1;border:none;background:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--tx2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+  nav#navbar button svg{width:22px;height:22px;}
+  nav#navbar button.on{color:var(--teal);}
+
+  .fab{position:fixed;right:18px;bottom:calc(var(--nh) + var(--sb) + 18px);z-index:40;height:52px;border-radius:26px;
+    background:var(--teal);color:var(--teal-tx);border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);
+    display:flex;align-items:center;justify-content:center;gap:8px;padding:0 20px 0 16px;}
+  .fab .fab-icon{font-size:20px;font-weight:700;}
+  .fab .fab-label{font-size:14px;font-weight:700;white-space:nowrap;}
+
+  .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:flex;align-items:flex-end;justify-content:center;}
+  @media(min-width:560px){.sheet-bg{align-items:center;}}
+  .sheet{background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:88vh;
+    display:flex;flex-direction:column;overflow:hidden;}
+  @media(min-width:560px){.sheet{border-radius:18px;}}
+  .sheet-handle{width:36px;height:4px;background:var(--border-dash);border-radius:2px;margin:10px auto 0;}
+  .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 6px;font-size:16px;font-weight:700;}
+  .sheet-body{padding:4px 18px calc(18px + var(--sb));overflow-y:auto;}
+  .sheet-body label{display:block;font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;
+    letter-spacing:.4px;margin:14px 0 6px;}
+  .sheet-body input[type=text],.sheet-body input[type=number]{width:100%;}
+  .sheet-btn-row{display:flex;gap:10px;margin-top:18px;}
+  .sheet-btn-row .btn{flex:1;}
+
+  .sort-opt{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--border);
+    font-size:15px;cursor:pointer;}
+  .sort-opt:last-child{border-bottom:none;}
+  .sort-opt .check{color:var(--teal);font-weight:700;}
+
+  .export-ta{width:100%;min-height:220px;font-family:'SF Mono',Menlo,monospace;font-size:11.5px;
+    border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--tx2);padding:10px;resize:vertical;}
+  .import-ta{width:100%;min-height:140px;border:1px solid var(--border);border-radius:10px;background:var(--bg);
+    color:var(--tx);font-size:14px;padding:10px;resize:vertical;}
+
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nh) + var(--sb) + 26px);
+    background:var(--tx);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:14px;font-weight:600;
+    z-index:300;max-width:86vw;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+</style>
+<script>
+/* Early theme bootstrap — resolves saved/auto theme before first paint to avoid a flash. */
+(function(){
+  try{
+    var raw = localStorage.getItem('pricecompare_v1');
+    var theme = 'dark';
+    if(raw){
+      var d = JSON.parse(raw);
+      if(d && d.theme) theme = d.theme;
+    }
+    if(theme==='auto'){
+      theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+  }catch(e){}
+})();
+</script>
+</head>
+<body>
+
+<!-- ═══════════ SCREEN: DASHBOARD ═══════════ -->
+<section id="screen-dashboard" class="screen">
+  <div class="topbar">
+    <h1>Dashboard</h1>
+    <button class="icon-btn" onclick="goSettings()" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h0a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h0a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+    </button>
+  </div>
+  <div class="content">
+    <input class="search" id="dashSearchBox" placeholder="Search lists or categories..." oninput="onDashSearch()">
+    <div id="dashSearchResults" class="hidden"></div>
+    <div id="dashNormal">
+      <div class="stats-row">
+        <div class="stat-tile"><div class="num" id="statLists">0</div><div class="lbl">Lists</div></div>
+        <div class="stat-tile"><div class="num" id="statSavings">฿0</div><div class="lbl">Best-buy savings</div></div>
+      </div>
+      <div class="cat-grid" id="catGrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SCREEN: LISTS ═══════════ -->
+<section id="screen-lists" class="screen hidden">
+  <div class="topbar"><h1>Lists</h1></div>
+  <div class="content">
+    <input class="search" id="listsSearchBox" placeholder="Search lists..." oninput="onListsSearch()">
+    <div class="chips-row" id="catChips"></div>
+    <div class="sort-row">
+      <button class="chip sort-chip" onclick="openSortSheet()">Sort: <span id="sortLabel">Newest first</span> ▾</button>
+    </div>
+    <div id="listCards"></div>
+  </div>
+  <button class="fab" id="listsFab" onclick="openNewComparison()">
+    <span class="fab-icon">+</span><span class="fab-label">New comparison</span>
+  </button>
+</section>
+
+<!-- ═══════════ SCREEN: SETTINGS ═══════════ -->
+<section id="screen-settings" class="screen hidden">
+  <div class="topbar"><h1>Settings</h1></div>
+  <div class="content">
+    <div class="card">
+      <h3>Appearance</h3>
+      <div class="seg" id="themeSeg">
+        <button class="seg-btn" data-theme="dark" onclick="setTheme_byEl(this)">Dark</button>
+        <button class="seg-btn" data-theme="light" onclick="setTheme_byEl(this)">Light</button>
+        <button class="seg-btn" data-theme="auto" onclick="setTheme_byEl(this)">Auto</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Default value readout</h3>
+      <div class="seg" id="readoutSeg">
+        <button class="seg-btn" data-readout="primary" onclick="setReadout_byEl(this)">Primary only</button>
+        <button class="seg-btn" data-readout="secondary" onclick="setReadout_byEl(this)">Secondary only</button>
+        <button class="seg-btn" data-readout="both" onclick="setReadout_byEl(this)">Both</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Categories</h3>
+      <p>Tap an icon to change it.</p>
+      <div id="catManageList"></div>
+      <div class="add-cat-row">
+        <input type="text" id="settingsNewCat" placeholder="New category name">
+        <button class="btn btn-primary" onclick="addCategorySettings()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Cloud sync (Google Drive)</h3>
+      <p>Back up and sync your data to your own Google Drive, so it's safe and available on your other devices. The app keeps working offline and syncs when you're online.</p>
+      <div class="set-meta" id="syncStatusBox"></div>
+      <div id="syncButtons"></div>
+      <details class="sync-details">
+        <summary>Connection setup</summary>
+        <label>Google OAuth Client ID</label>
+        <input type="text" id="driveClientId" placeholder="…apps.googleusercontent.com" onchange="saveDriveClientId_byEl(this)">
+        <p class="hint">One-time setup in your Google account:</p>
+        <ol class="hint sync-steps">
+          <li>Open Google Cloud Console → APIs &amp; Services → enable the <b>Google Drive API</b>.</li>
+          <li>Credentials → Create credentials → <b>OAuth client ID</b> → type <b>Web application</b>.</li>
+          <li>Under <b>Authorized JavaScript origins</b>, add this site's address (your GitHub Pages URL).</li>
+          <li>Copy the Client ID and paste it above, then tap Connect.</li>
+        </ol>
+      </details>
+    </div>
+    <div class="card">
+      <h3>Data</h3>
+      <p>You can also keep a manual copy. Export shows all your data as JSON; Import restores it.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="openExport()">Export</button>
+        <button class="btn btn-outline" onclick="openImport()">Import</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Manage data</h3>
+      <p>Remove comparisons you no longer need, or wipe everything and start fresh.</p>
+      <button class="btn btn-outline btn-block" onclick="openSelectDelete()">Select comparisons to delete</button>
+      <button class="btn btn-danger btn-block" style="margin-top:10px;" onclick="clearAllData()">Clear all data</button>
+    </div>
+    <div class="card">
+      <p class="about-line">Price Compare — personal unit-price comparison tool. All data stays on this device.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SCREEN: COMPARISON DETAIL ═══════════ -->
+<section id="screen-detail" class="screen hidden">
+  <div class="detail-header">
+    <button class="icon-btn" onclick="goBackFromDetail()" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h1 id="detailName">Comparison</h1>
+    <button class="icon-btn" onclick="openEditList()" aria-label="Edit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+    </button>
+  </div>
+  <div class="content">
+    <span class="measure-pill" id="detailMeasurePill">Compare by volume</span>
+    <div id="detailScaleToggle"></div>
+    <div id="detailHero"></div>
+    <div id="detailRanked"></div>
+    <button class="btn-add" onclick="openOptionSheet_add(view.detailListId)">+ Add option</button>
+  </div>
+</section>
+
+<nav id="navbar">
+  <button data-tab="dashboard" class="on" onclick="switchTab_byEl(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    Dashboard</button>
+  <button data-tab="lists" onclick="switchTab_byEl(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    Lists</button>
+  <button data-tab="settings" onclick="switchTab_byEl(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h0a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h0a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+    Settings</button>
+</nav>
+
+<!-- ═══════════ SHEET: NEW COMPARISON ═══════════ -->
+<div class="sheet-bg hidden" id="newCompSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><span>New comparison</span>
+      <button class="icon-btn" data-sheet="newCompSheet" onclick="closeSheet_byEl(this)">✕</button></div>
+    <div class="sheet-body">
+      <label>Name</label>
+      <input type="text" id="ncName" placeholder="e.g. Shampoo 400ml">
+      <label>Category</label>
+      <div class="cat-picker" id="ncCatPicker"></div>
+      <div id="ncNewCatRow" class="hidden">
+        <input type="text" id="ncNewCatName" placeholder="New category name">
+        <button class="btn btn-primary" onclick="confirmNewCategory()">Add</button>
+      </div>
+      <label>Measure</label>
+      <div class="seg" id="ncMeasureSeg">
+        <button class="seg-btn" data-measure="volume" onclick="setNcMeasure_byEl(this)">Volume</button>
+        <button class="seg-btn" data-measure="weight" onclick="setNcMeasure_byEl(this)">Weight</button>
+        <button class="seg-btn" data-measure="count" onclick="setNcMeasure_byEl(this)">Count</button>
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="createComparison()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SHEET: EDIT COMPARISON ═══════════ -->
+<div class="sheet-bg hidden" id="editListSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><span>Edit comparison</span>
+      <button class="icon-btn" data-sheet="editListSheet" onclick="closeSheet_byEl(this)">✕</button></div>
+    <div class="sheet-body">
+      <label>Name</label>
+      <input type="text" id="elName">
+      <label>Category</label>
+      <div class="cat-picker" id="elCatPicker"></div>
+      <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="saveListEdit()">Save changes</button>
+      <button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="deleteList()">Delete comparison</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SHEET: ADD / EDIT OPTION ═══════════ -->
+<div class="sheet-bg hidden" id="optionSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><span id="optionSheetTitle">Add option</span>
+      <button class="icon-btn" data-sheet="optionSheet" onclick="closeSheet_byEl(this)">✕</button></div>
+    <div class="sheet-body">
+      <label>Shop / label</label>
+      <input type="text" id="optLabel" placeholder="e.g. 7-Eleven, Big C, Lotus" oninput="updateOptionPreview()">
+      <label>Size</label>
+      <div class="size-row">
+        <input type="number" inputmode="decimal" id="optSize" placeholder="0" oninput="updateOptionPreview()">
+        <div class="seg" id="unitSeg"></div>
+      </div>
+      <label>Quantity</label>
+      <div class="stepper">
+        <button class="step-btn" onclick="qtyStep(-1)">−</button>
+        <div class="step-val" id="optQtyVal">1</div>
+        <button class="step-btn" onclick="qtyStep(1)">+</button>
+      </div>
+      <label>Price (฿)</label>
+      <input type="number" inputmode="decimal" id="optPrice" placeholder="0" oninput="updateOptionPreview()">
+      <label>Discount % (optional)</label>
+      <input type="number" inputmode="decimal" id="optDiscount" placeholder="0" oninput="updateOptionPreview()">
+      <div class="preview-box">
+        <div class="preview-lbl">Works out to</div>
+        <div class="preview-val" id="optPreview">—</div>
+        <div class="preview-note" id="optPreviewNote"></div>
+      </div>
+      <div class="sheet-btn-row" id="optionSheetButtons"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SHEET: SORT ═══════════ -->
+<div class="sheet-bg hidden" id="sortSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><span>Sort by</span>
+      <button class="icon-btn" data-sheet="sortSheet" onclick="closeSheet_byEl(this)">✕</button></div>
+    <div class="sheet-body" id="sortOptions"></div>
+  </div>
+</div>
+
+<!-- ═══════════ SHEET: EXPORT ═══════════ -->
+<div class="sheet-bg hidden" id="exportModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><span>Export backup</span>
+      <button class="icon-btn" data-sheet="exportModal" onclick="closeSheet_byEl(this)">✕</button></div>
+    <div class="sheet-body">
+      <p style="font-size:13px;color:var(--tx2);margin-bottom:10px;">Copy this JSON and save it somewhere safe. You can restore it later with Import.</p>
+      <textarea class="export-ta" id="exportTa" readonly></textarea>
+      <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="copyExport()">Copy all JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SHEET: IMPORT ═══════════ -->
+<div class="sheet-bg hidden" id="importModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><span>Import backup</span>
+      <button class="icon-btn" data-sheet="importModal" onclick="closeSheet_byEl(this)">✕</button></div>
+    <div class="sheet-body">
+      <p style="font-size:13px;color:var(--tx2);margin-bottom:10px;">Paste a previously exported backup. This replaces all current data.</p>
+      <textarea class="import-ta" id="importTa" placeholder="Paste backup JSON here..."></textarea>
+      <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="runImport()">Import & replace</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SHEET: SELECT & DELETE ═══════════ -->
+<div class="sheet-bg hidden" id="selectDeleteSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><span>Delete comparisons</span>
+      <button class="icon-btn" data-sheet="selectDeleteSheet" onclick="closeSheet_byEl(this)">✕</button></div>
+    <div class="sheet-body">
+      <p style="font-size:13px;color:var(--tx2);margin-bottom:12px;">Tap the ones you want to remove, then delete.</p>
+      <div id="selectDeleteList"></div>
+      <button class="btn btn-danger btn-block" id="selDelBtn" style="margin-top:8px;" onclick="deleteSelected()" disabled>Delete selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SHEET: EMOJI PICKER ═══════════ -->
+<div class="sheet-bg hidden" id="emojiSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><span>Choose an icon</span>
+      <button class="icon-btn" data-sheet="emojiSheet" onclick="closeSheet_byEl(this)">✕</button></div>
+    <div class="sheet-body">
+      <button class="btn btn-outline btn-block" onclick="triggerImageUpload()">Upload an image…</button>
+      <input type="file" id="iconFileInput" accept="image/*" class="hidden" onchange="handleIconFile_byEl(this)">
+      <div class="emoji-or">or pick an emoji</div>
+      <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ── measure config ── */
+const MEASURES = {
+  volume:{ units:[{u:'ml',f:1},{u:'L',f:1000}], hasScale:true,
+    scales:{ large:{factor:1000,suffix:'/L'}, small:{factor:1,suffix:'/ml'} },
+    secondaryLabel:'ml/฿', bigUnit:'L', smallUnit:'ml' },
+  weight:{ units:[{u:'g',f:1},{u:'kg',f:1000}], hasScale:true,
+    scales:{ large:{factor:1000,suffix:'/kg'}, small:{factor:1,suffix:'/g'} },
+    secondaryLabel:'g/฿', bigUnit:'kg', smallUnit:'g' },
+  count:{ units:[{u:'pcs',f:1}], hasScale:false,
+    scales:{ large:{factor:1,suffix:'/pc'}, small:{factor:1,suffix:'/pc'} },
+    secondaryLabel:'pcs/฿', bigUnit:'pcs', smallUnit:'pcs' }
+};
+
+/* ── category icons: emoji glyph on a cohesive, on-tone colour tint ── */
+const ICON_COLORS = ['#2dd4bf','#3b82f6','#8b5cf6','#ec4899','#f59e0b','#34d399','#f97316','#22d3ee'];
+/* curated emoji set for the picker + auto-assignment (kept tasteful & shopping-related) */
+const CAT_EMOJIS = ['🏠','🛒','🥤','🧴','🍫','☕','🍺','💊','🍼','🐶','👕','🔌','🔧','✏️','🥦','🥩','🥛','🍞','🧊','🧻','🧼','🌱','🍎','🧀','🧂','🥫','💄','🩹','📦','🏷️','🛍️','✨'];
+/* keyword → emoji, checked in order so the most specific category names win */
+const EMOJI_KEYWORDS = [
+  [['household','house','home'],'🏠'], [['toilet','tissue','bathroom'],'🧻'],
+  [['soap','detergent','laundry','wash','clean'],'🧼'], [['personal','beauty','cosmetic','skin','care'],'🧴'],
+  [['makeup','lipstick'],'💄'], [['grocery','groceries','pantry','food'],'🛒'],
+  [['fruit','veg','vegetable','produce'],'🥦'], [['meat','protein','beef','pork','chicken'],'🥩'],
+  [['dairy','milk','cheese'],'🥛'], [['bread','bakery'],'🍞'], [['frozen','ice'],'🧊'],
+  [['snack','candy','sweet','chocolate'],'🍫'], [['coffee','tea'],'☕'],
+  [['beer','wine','alcohol','liquor'],'🍺'], [['drink','beverage','soda','juice','water'],'🥤'],
+  [['medicine','pharma','health','drug','supplement','vitamin'],'💊'], [['first aid','bandage','plaster'],'🩹'],
+  [['baby','infant','diaper'],'🍼'], [['pet','dog','cat','animal'],'🐶'],
+  [['clothes','clothing','apparel','fashion','wear'],'👕'], [['electronic','tech','gadget','device','phone'],'🔌'],
+  [['tool','hardware','diy','repair'],'🔧'], [['stationery','office','paper','book','study'],'✏️'],
+  [['garden','plant','flower'],'🌱']
+];
+function hashStr(s){ let h=0; for(let i=0;i<String(s).length;i++){ h=(h*31 + String(s).charCodeAt(i))|0; } return Math.abs(h); }
+function catColor(cat){ if(!cat) return ICON_COLORS[0]; return ICON_COLORS[hashStr(cat.id||cat.name) % ICON_COLORS.length]; }
+function guessEmoji(name){
+  const n = String(name||'').toLowerCase();
+  for(let i=0;i<EMOJI_KEYWORDS.length;i++){ if(EMOJI_KEYWORDS[i][0].some(k=>n.includes(k))) return EMOJI_KEYWORDS[i][1]; }
+  const defaults = ['📦','🏷️','🛍️','✨'];
+  return defaults[hashStr(n) % defaults.length];
+}
+/* an emoji already stored on the category wins; legacy single-letter icons fall back to a guessed emoji */
+function catGlyph(cat){
+  if(cat && cat.icon && !/^[A-Za-z]$/.test(cat.icon)) return cat.icon;
+  return guessEmoji(cat ? cat.name : '');
+}
+/* a category icon may be an uploaded image (stored as a data: URI) instead of an emoji */
+function isImageIcon(cat){ return !!(cat && typeof cat.icon==='string' && cat.icon.indexOf('data:image')===0); }
+/* inner HTML for an icon box: an <img> for uploaded images, otherwise the emoji glyph */
+function catIconInner(cat){
+  if(isImageIcon(cat)) return '<img class="cat-img" src="'+esc(cat.icon)+'" alt="">';
+  return '<span class="emoji-glyph">'+catGlyph(cat)+'</span>';
+}
+/* soft tinted background + colour border, so the tile reads well in both dark and light themes */
+function catIconStyle(cat){ const c = catColor(cat); return 'background:'+c+'22;border:1px solid '+c+'55;'; }
+const SORT_KEYS = ['newest','oldest','name-asc','name-desc','best-price','biggest-savings'];
+const SORT_LABELS = { newest:'Newest first', oldest:'Oldest first', 'name-asc':'Name A–Z', 'name-desc':'Name Z–A',
+  'best-price':'Best price', 'biggest-savings':'Biggest savings' };
+
+/* ── state (persisted) ── */
+let S = { theme:'dark', readout:'both', sort:'newest', categories:[], lists:[], updatedAt:0,
+          drive:{ clientId:'', connected:false, lastSync:null } };
+/* ── ephemeral view state (not persisted) ── */
+let view = { screen:'dashboard', detailListId:null, listsCategoryFilter:'all', listsSearch:'' };
+let editingOptionId = null;
+let activeOptionListId = null;
+let optState = { unit:null, qty:1 };
+let ncState = { categoryId:null, measure:'volume' };
+let elState = { categoryId:null };
+
+/* ── persistence ──
+   persistLocal(): write to localStorage only (used when adopting cloud data, so we don't
+   bump the timestamp or echo it straight back to Drive).
+   save(): a genuine local change — stamp updatedAt, persist, and schedule a debounced push. */
+function persistLocal(){
+  try{ localStorage.setItem('pricecompare_v1', JSON.stringify(S)); }
+  catch(e){ console.warn('save failed:', e); }
+}
+function save(){
+  S.updatedAt = Date.now();
+  persistLocal();
+  try{ driveSchedulePush(); }catch(e){}
+}
+function uid(){ return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function round2(n){ return Math.round((n+Number.EPSILON)*100)/100; }
+function trimNum(n){ return round2(n).toString(); }
+function fmtPct(n){ return Math.round(n)+'%'; }
+/* which display scale a list uses for its primary readout: 'large' (฿/L, ฿/kg) or 'small' (฿/ml, ฿/g). */
+function scaleOf(list){
+  if(!list) return 'large';
+  const m = MEASURES[list.measure];
+  if(!m || !m.hasScale) return 'large';
+  return list.unitScale==='small' ? 'small' : 'large';
+}
+/* fmtPrimary now takes the raw unit price (฿ per base unit) plus the chosen scale key. */
+function fmtPrimary(measureKey, unitPrice, scaleKey){
+  if(unitPrice==null || !isFinite(unitPrice)) return '—';
+  const sc = MEASURES[measureKey].scales[scaleKey] || MEASURES[measureKey].scales.large;
+  return '฿'+trimNum(unitPrice*sc.factor)+sc.suffix;
+}
+function fmtSecondary(measureKey, val){
+  if(val==null || !isFinite(val)) return '—';
+  return trimNum(val)+' '+MEASURES[measureKey].secondaryLabel;
+}
+function fmtTotal(totalBase, measureKey){
+  const m = MEASURES[measureKey];
+  if(measureKey==='count') return trimNum(totalBase)+' pcs';
+  if(totalBase>=1000) return trimNum(totalBase/1000)+' '+m.bigUnit;
+  return trimNum(totalBase)+' '+m.smallUnit;
+}
+function optDiscount(opt){ return Math.min(100, Math.max(0, Number(opt.discount)||0)); }
+function optEffectivePrice(opt){ return (Number(opt.price)||0) * (1 - optDiscount(opt)/100); }
+function fmtOptionSub(opt, measureKey){
+  const sizeTxt = measureKey==='count' ? trimNum(opt.size)+' pcs' : trimNum(opt.size)+' '+opt.unit;
+  const disc = optDiscount(opt);
+  let priceTxt;
+  if(disc>0){
+    priceTxt = '<span class="disc-strike">฿'+trimNum(opt.price)+'</span> ฿'+trimNum(optEffectivePrice(opt))+
+      ' <span class="disc-tag">−'+trimNum(disc)+'%</span>';
+  } else {
+    priceTxt = '฿'+trimNum(opt.price);
+  }
+  return sizeTxt+' × '+trimNum(opt.qty)+' · '+priceTxt;
+}
+function toast(msg){
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 2300);
+}
+function copyText(txt, okMsg){
+  const done = ()=>toast(okMsg||'Copied ✓');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt, done));
+  } else fallbackCopy(txt, done);
+}
+function fallbackCopy(txt, done){
+  const ta = document.createElement('textarea');
+  ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, 999999);
+  try{ document.execCommand('copy'); done(); }catch(e){ toast('Copy failed — select and copy manually'); }
+  ta.remove();
+}
+
+/* ── core math ── */
+function computeOption(opt, measureKey){
+  const m = MEASURES[measureKey];
+  const unitDef = m.units.find(u=>u.u===opt.unit) || m.units[0];
+  const size = Number(opt.size)||0;
+  const qty = Number(opt.qty)||0;
+  const rawPrice = Number(opt.price)||0;
+  const price = optEffectivePrice(opt); /* price after any discount — drives all comparisons */
+  const sizeBase = size * unitDef.f;
+  const totalBase = sizeBase * qty;
+  const valid = totalBase>0 && price>0;
+  const unitPrice = valid ? price/totalBase : null;
+  const primary = valid ? unitPrice*m.scales.large.factor : null; /* large-scale, used for ranking + savings */
+  const secondary = valid ? totalBase/price : null;
+  return { valid, sizeBase, totalBase, unitPrice, primary, secondary, rawPrice, effectivePrice:price, discount:optDiscount(opt) };
+}
+function listComputed(list){
+  const arr = list.options.map(o=>({ opt:o, comp:computeOption(o, list.measure) }));
+  const valid = arr.filter(x=>x.comp.valid).sort((a,b)=>a.comp.primary-b.comp.primary);
+  const invalid = arr.filter(x=>!x.comp.valid);
+  return { valid, invalid };
+}
+function listBestWorst(list){
+  const { valid } = listComputed(list);
+  if(!valid.length) return null;
+  return { best:valid[0], worst:valid[valid.length-1], count:valid.length };
+}
+function listSavingsPct(list){
+  const bw = listBestWorst(list);
+  if(!bw || bw.count<2 || bw.worst.comp.primary<=0) return 0;
+  return (bw.worst.comp.primary - bw.best.comp.primary) / bw.worst.comp.primary * 100;
+}
+function listSavingsBaht(list){
+  const bw = listBestWorst(list);
+  if(!bw || bw.count<2) return 0;
+  return bw.worst.comp.primary - bw.best.comp.primary;
+}
+function renderReadoutBlock(comp, measureKey, variant, scaleKey){
+  const bigClass = variant==='hero' ? 'hero-primary' : 'rank-primary';
+  const smallClass = variant==='hero' ? 'hero-secondary' : 'rank-secondary';
+  if(S.readout==='primary'){
+    return '<div class="'+bigClass+'">'+fmtPrimary(measureKey, comp.unitPrice, scaleKey)+'</div>';
+  }
+  if(S.readout==='secondary'){
+    return '<div class="'+bigClass+'">'+fmtSecondary(measureKey, comp.secondary)+'</div>';
+  }
+  return '<div class="'+bigClass+'">'+fmtPrimary(measureKey, comp.unitPrice, scaleKey)+'</div>'+
+         '<div class="'+smallClass+'">'+fmtSecondary(measureKey, comp.secondary)+'</div>';
+}
+
+/* ── navigation ── */
+function showScreen(name){
+  ['dashboard','lists','settings','detail'].forEach(s=>{
+    const el = document.getElementById('screen-'+s);
+    if(el) el.classList.toggle('hidden', s!==name);
+  });
+  document.querySelectorAll('nav#navbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===name));
+  document.getElementById('navbar').classList.toggle('hidden', name==='detail');
+  view.screen = name;
+  window.scrollTo(0,0);
+  renderAll();
+}
+function switchTab_byEl(el){ showScreen(el.dataset.tab); }
+function goDashboard(){ showScreen('dashboard'); }
+function goSettings(){ showScreen('settings'); }
+function goBackFromDetail(){ showScreen('lists'); }
+function openDetail(id){
+  const list = S.lists.find(l=>l.id===id);
+  if(!list) return;
+  view.detailListId = id;
+  showScreen('detail');
+}
+function openListDetail_byEl(el){ openDetail(el.dataset.id); }
+function openCategoryTile_byEl(el){
+  view.listsCategoryFilter = el.dataset.catid;
+  view.listsSearch = '';
+  showScreen('lists');
+}
+
+/* ── sheet (bottom modal) plumbing ── */
+function openSheet(id){ const el=document.getElementById(id); if(el) el.classList.remove('hidden'); }
+function closeSheet(id){ const el=document.getElementById(id); if(el) el.classList.add('hidden'); }
+function closeSheet_byEl(el){ closeSheet(el.dataset.sheet); }
+
+/* ══════════════ RENDER: ALL ══════════════ */
+function renderAll(){
+  try{ renderDashboard(); }catch(e){ console.warn('renderDashboard:', e); }
+  try{ renderLists(); }catch(e){ console.warn('renderLists:', e); }
+  try{ renderSettings(); }catch(e){ console.warn('renderSettings:', e); }
+  try{ renderDetail(); }catch(e){ console.warn('renderDetail:', e); }
+}
+
+/* ══════════════ RENDER: DASHBOARD ══════════════ */
+function renderDashboard(){
+  document.getElementById('statLists').textContent = S.lists.length;
+  const totalSavings = S.lists.reduce((sum,l)=>sum+listSavingsBaht(l), 0);
+  document.getElementById('statSavings').textContent = '฿'+trimNum(totalSavings);
+  renderCatGrid();
+}
+function renderCatGrid(){
+  const box = document.getElementById('catGrid');
+  if(!S.categories.length){ box.innerHTML = '<div class="empty">No categories yet — add one in Settings.</div>'; return; }
+  box.innerHTML = S.categories.map(c=>{
+    const n = S.lists.filter(l=>l.categoryId===c.id).length;
+    return '<div class="cat-tile" data-catid="'+c.id+'" onclick="openCategoryTile_byEl(this)">'+
+      '<div class="cat-icon" style="'+catIconStyle(c)+'">'+catIconInner(c)+'</div>'+
+      '<div class="cat-name">'+esc(c.name)+'</div>'+
+      '<div class="cat-count">'+n+' list'+(n===1?'':'s')+'</div>'+
+    '</div>';
+  }).join('');
+}
+function onDashSearch(){
+  const q = document.getElementById('dashSearchBox').value.trim().toLowerCase();
+  const resultsBox = document.getElementById('dashSearchResults');
+  const normalBox = document.getElementById('dashNormal');
+  if(!q){ resultsBox.classList.add('hidden'); resultsBox.innerHTML=''; normalBox.classList.remove('hidden'); return; }
+  normalBox.classList.add('hidden'); resultsBox.classList.remove('hidden');
+  const matchedCats = S.categories.filter(c=>c.name.toLowerCase().includes(q));
+  const matchedLists = S.lists.filter(l=>l.name.toLowerCase().includes(q));
+  let html = '';
+  if(matchedCats.length){
+    html += '<div class="search-section-title">Categories</div>' +
+      matchedCats.map(c=>'<div class="search-row" data-type="cat" data-id="'+c.id+'" onclick="dashResultTap_byEl(this)">'+esc(c.name)+'</div>').join('');
+  }
+  if(matchedLists.length){
+    html += '<div class="search-section-title">Lists</div>' +
+      matchedLists.map(l=>'<div class="search-row" data-type="list" data-id="'+l.id+'" onclick="dashResultTap_byEl(this)">'+esc(l.name)+'</div>').join('');
+  }
+  if(!matchedCats.length && !matchedLists.length) html = '<div class="empty">No matches</div>';
+  resultsBox.innerHTML = html;
+}
+function dashResultTap_byEl(el){
+  const type = el.dataset.type, id = el.dataset.id;
+  document.getElementById('dashSearchBox').value = '';
+  document.getElementById('dashSearchResults').classList.add('hidden');
+  document.getElementById('dashNormal').classList.remove('hidden');
+  if(type==='cat'){ view.listsCategoryFilter = id; view.listsSearch=''; showScreen('lists'); }
+  else { openDetail(id); }
+}
+
+/* ══════════════ RENDER: LISTS ══════════════ */
+function renderLists(){
+  renderCatChips();
+  const q = view.listsSearch.trim().toLowerCase();
+  let arr = S.lists.slice();
+  if(view.listsCategoryFilter!=='all') arr = arr.filter(l=>l.categoryId===view.listsCategoryFilter);
+  if(q) arr = arr.filter(l=>l.name.toLowerCase().includes(q));
+  arr = sortLists(arr, S.sort);
+  const box = document.getElementById('listCards');
+  if(!arr.length){
+    box.innerHTML = '<div class="empty">'+(S.lists.length ? 'No matching lists' : 'No comparisons yet — tap New comparison to start')+'</div>';
+  } else {
+    box.innerHTML = arr.map(renderListCard).join('');
+  }
+  const lbl = document.getElementById('sortLabel');
+  if(lbl) lbl.textContent = SORT_LABELS[S.sort] || SORT_LABELS.newest;
+}
+function renderCatChips(){
+  const box = document.getElementById('catChips');
+  const chips = [{id:'all', name:'All'}].concat(S.categories);
+  box.innerHTML = chips.map(c=>
+    '<button class="chip'+(view.listsCategoryFilter===c.id?' on':'')+'" data-cat="'+c.id+'" onclick="setCatFilter_byEl(this)">'+esc(c.name)+'</button>'
+  ).join('');
+}
+function setCatFilter_byEl(el){ view.listsCategoryFilter = el.dataset.cat; renderLists(); }
+function onListsSearch(){ view.listsSearch = document.getElementById('listsSearchBox').value; renderLists(); }
+function sortLists(arr, key){
+  const withBW = arr.map(l=>({ l, bw:listBestWorst(l) }));
+  switch(key){
+    case 'oldest': return arr.slice().sort((a,b)=>a.created-b.created);
+    case 'name-asc': return arr.slice().sort((a,b)=>a.name.localeCompare(b.name));
+    case 'name-desc': return arr.slice().sort((a,b)=>b.name.localeCompare(a.name));
+    case 'best-price':
+      return withBW.sort((a,b)=>{
+        if(!a.bw && !b.bw) return 0;
+        if(!a.bw) return 1; if(!b.bw) return -1;
+        return a.bw.best.comp.primary - b.bw.best.comp.primary;
+      }).map(x=>x.l);
+    case 'biggest-savings':
+      return withBW.sort((a,b)=>{
+        const sa = (a.bw && a.bw.count>=2) ? listSavingsPct(a.l) : -1;
+        const sb = (b.bw && b.bw.count>=2) ? listSavingsPct(b.l) : -1;
+        return sb - sa;
+      }).map(x=>x.l);
+    case 'newest': default:
+      return arr.slice().sort((a,b)=>b.created-a.created);
+  }
+}
+function renderListCard(list){
+  const cat = S.categories.find(c=>c.id===list.categoryId);
+  const bw = listBestWorst(list);
+  let priceHtml, pillHtml = '';
+  if(!bw){
+    priceHtml = '<div class="lc-price-empty">No valid prices yet</div>';
+  } else {
+    priceHtml = '<div class="lc-price">'+fmtPrimary(list.measure, bw.best.comp.unitPrice, scaleOf(list))+'</div>'+
+      '<div class="lc-winner">'+esc(bw.best.opt.label||'Unnamed')+'</div>';
+    const pct = listSavingsPct(list);
+    if(pct>=0.5) pillHtml = '<div class="pill pill-green">save '+fmtPct(pct)+'</div>';
+  }
+  return '<div class="list-card" data-id="'+list.id+'" onclick="openListDetail_byEl(this)">'+
+    '<div class="lc-top">'+
+      '<div class="lc-head">'+
+        '<div class="lc-icon" style="'+catIconStyle(cat)+'">'+catIconInner(cat)+'</div>'+
+        '<div class="lc-name">'+esc(list.name)+'</div>'+
+      '</div>'+
+      pillHtml+
+    '</div>'+
+    '<div class="lc-meta">'+(cat?esc(cat.name):'—')+' · '+list.options.length+' option'+(list.options.length===1?'':'s')+'</div>'+
+    priceHtml+
+  '</div>';
+}
+function openSortSheet(){
+  document.getElementById('sortOptions').innerHTML = SORT_KEYS.map(k=>
+    '<div class="sort-opt" data-sort="'+k+'" onclick="setSort_byEl(this)"><span>'+SORT_LABELS[k]+'</span>'+
+      (S.sort===k ? '<span class="check">✓</span>' : '')+'</div>'
+  ).join('');
+  openSheet('sortSheet');
+}
+function setSort_byEl(el){
+  S.sort = el.dataset.sort;
+  save();
+  closeSheet('sortSheet');
+  renderLists();
+}
+
+/* ══════════════ RENDER: DETAIL ══════════════ */
+function renderDetail(){
+  if(!view.detailListId) return;
+  const list = S.lists.find(l=>l.id===view.detailListId);
+  if(!list){ view.detailListId = null; return; }
+  document.getElementById('detailName').textContent = list.name;
+  document.getElementById('detailMeasurePill').textContent = 'Compare by '+list.measure;
+  renderScaleToggle(list);
+  const scaleKey = scaleOf(list);
+  const { valid, invalid } = listComputed(list);
+  const heroBox = document.getElementById('detailHero');
+  const rankBox = document.getElementById('detailRanked');
+  if(!valid.length){
+    heroBox.innerHTML = '<div class="empty">Add at least one option with a size and price to see results.</div>';
+    rankBox.innerHTML = invalid.map(x=>renderInvalidRow(x)).join('');
+    return;
+  }
+  const best = valid[0];
+  const worst = valid[valid.length-1];
+  const pct = valid.length>=2 ? (worst.comp.primary-best.comp.primary)/worst.comp.primary*100 : 0;
+  heroBox.innerHTML = renderHeroCard(best, list.measure, pct>=0.5?pct:0, scaleKey);
+  const rest = valid.slice(1);
+  let html = rest.map((x,i)=>renderRankRow(x, i+2, best.comp.primary, list.measure, scaleKey)).join('');
+  html += invalid.map(x=>renderInvalidRow(x)).join('');
+  rankBox.innerHTML = html;
+}
+function renderScaleToggle(list){
+  const box = document.getElementById('detailScaleToggle');
+  if(!box) return;
+  const m = MEASURES[list.measure];
+  if(!m.hasScale){ box.innerHTML = ''; return; }
+  const cur = scaleOf(list);
+  box.innerHTML = '<div class="scale-toggle">'+
+    '<span class="scale-lbl">Show as</span>'+
+    '<div class="seg seg-inline">'+
+      '<button class="seg-btn'+(cur==='large'?' on':'')+'" data-scale="large" onclick="setDetailScale_byEl(this)">฿'+m.scales.large.suffix+'</button>'+
+      '<button class="seg-btn'+(cur==='small'?' on':'')+'" data-scale="small" onclick="setDetailScale_byEl(this)">฿'+m.scales.small.suffix+'</button>'+
+    '</div>'+
+  '</div>';
+}
+function setDetailScale_byEl(el){
+  const list = S.lists.find(l=>l.id===view.detailListId);
+  if(!list) return;
+  list.unitScale = el.dataset.scale;
+  save();
+  renderAll();
+}
+function renderHeroCard(x, measureKey, pct, scaleKey){
+  return '<div class="hero-card" data-id="'+x.opt.id+'" onclick="openOptionSheet_byEl(this)">'+
+    '<div class="hero-label">'+esc(x.opt.label||'Unnamed')+'</div>'+
+    '<div class="hero-sub">'+fmtOptionSub(x.opt, measureKey)+'</div>'+
+    renderReadoutBlock(x.comp, measureKey, 'hero', scaleKey)+
+    (pct>0 ? '<div class="pill pill-green">save '+fmtPct(pct)+'</div>' : '')+
+  '</div>';
+}
+function renderRankRow(x, rank, bestPrimary, measureKey, scaleKey){
+  const pct = bestPrimary>0 ? (x.comp.primary-bestPrimary)/bestPrimary*100 : 0;
+  return '<div class="rank-row" data-id="'+x.opt.id+'" onclick="openOptionSheet_byEl(this)">'+
+    '<div class="rank-num">'+rank+'</div>'+
+    '<div class="rank-main">'+
+      '<div class="rank-label">'+esc(x.opt.label||'Unnamed')+'</div>'+
+      '<div class="rank-sub">'+fmtOptionSub(x.opt, measureKey)+'</div>'+
+    '</div>'+
+    '<div class="rank-values">'+
+      renderReadoutBlock(x.comp, measureKey, 'rank', scaleKey)+
+      (pct>=0.5 ? '<div class="pill pill-amber">+'+fmtPct(pct)+'</div>' : '')+
+    '</div>'+
+  '</div>';
+}
+function renderInvalidRow(x){
+  return '<div class="rank-row rank-row-invalid" data-id="'+x.opt.id+'" onclick="openOptionSheet_byEl(this)">'+
+    '<div class="rank-num">—</div>'+
+    '<div class="rank-main">'+
+      '<div class="rank-label">'+esc(x.opt.label||'Unnamed')+'</div>'+
+      '<div class="rank-sub">Incomplete — add size and price</div>'+
+    '</div>'+
+  '</div>';
+}
+
+/* ══════════════ NEW COMPARISON ══════════════ */
+function openNewComparison(){
+  document.getElementById('ncName').value = '';
+  ncState.categoryId = S.categories.length ? S.categories[0].id : null;
+  ncState.measure = 'volume';
+  document.getElementById('ncNewCatRow').classList.add('hidden');
+  document.getElementById('ncNewCatName').value = '';
+  renderNcCatPicker();
+  renderNcMeasureSeg();
+  openSheet('newCompSheet');
+}
+function renderNcCatPicker(){
+  const box = document.getElementById('ncCatPicker');
+  box.innerHTML = S.categories.map(c=>
+    '<button class="chip'+(ncState.categoryId===c.id?' on':'')+'" data-catid="'+c.id+'" onclick="setNcCat_byEl(this)">'+esc(c.name)+'</button>'
+  ).join('') + '<button class="chip chip-dashed" onclick="showNcNewCat()">+ New category</button>';
+}
+function setNcCat_byEl(el){
+  ncState.categoryId = el.dataset.catid;
+  document.getElementById('ncNewCatRow').classList.add('hidden');
+  renderNcCatPicker();
+}
+function showNcNewCat(){
+  document.getElementById('ncNewCatRow').classList.remove('hidden');
+  document.getElementById('ncNewCatName').focus();
+}
+function confirmNewCategory(){
+  const name = document.getElementById('ncNewCatName').value.trim();
+  if(!name){ toast('Enter a category name'); return; }
+  const cat = { id:uid(), name, icon:guessEmoji(name) };
+  S.categories.push(cat);
+  save();
+  ncState.categoryId = cat.id;
+  document.getElementById('ncNewCatRow').classList.add('hidden');
+  document.getElementById('ncNewCatName').value = '';
+  renderNcCatPicker();
+  toast('Category added');
+}
+function renderNcMeasureSeg(){
+  document.querySelectorAll('#ncMeasureSeg .seg-btn').forEach(b=>
+    b.classList.toggle('on', b.dataset.measure===ncState.measure));
+}
+function setNcMeasure_byEl(el){ ncState.measure = el.dataset.measure; renderNcMeasureSeg(); }
+function createComparison(){
+  const name = document.getElementById('ncName').value.trim();
+  if(!name){ toast('Enter a name'); return; }
+  if(!ncState.categoryId){ toast('Choose or add a category'); return; }
+  const list = { id:uid(), name, categoryId:ncState.categoryId, measure:ncState.measure, unitScale:'large', created:Date.now(), options:[] };
+  S.lists.push(list);
+  save();
+  closeSheet('newCompSheet');
+  view.detailListId = list.id;
+  showScreen('detail');
+  toast('Comparison created — add your first option');
+}
+
+/* ══════════════ EDIT COMPARISON ══════════════ */
+function openEditList(){
+  const list = S.lists.find(l=>l.id===view.detailListId);
+  if(!list) return;
+  document.getElementById('elName').value = list.name;
+  elState.categoryId = list.categoryId;
+  renderElCatPicker();
+  openSheet('editListSheet');
+}
+function renderElCatPicker(){
+  const box = document.getElementById('elCatPicker');
+  box.innerHTML = S.categories.map(c=>
+    '<button class="chip'+(elState.categoryId===c.id?' on':'')+'" data-catid="'+c.id+'" onclick="setElCat_byEl(this)">'+esc(c.name)+'</button>'
+  ).join('');
+}
+function setElCat_byEl(el){ elState.categoryId = el.dataset.catid; renderElCatPicker(); }
+function saveListEdit(){
+  const list = S.lists.find(l=>l.id===view.detailListId);
+  if(!list) return;
+  const name = document.getElementById('elName').value.trim();
+  if(!name){ toast('Name cannot be empty'); return; }
+  list.name = name;
+  list.categoryId = elState.categoryId;
+  save();
+  closeSheet('editListSheet');
+  renderAll();
+  toast('Comparison updated');
+}
+function deleteList(){
+  const list = S.lists.find(l=>l.id===view.detailListId);
+  if(!list) return;
+  if(!confirm('Delete "'+list.name+'" and all its options?')) return;
+  S.lists = S.lists.filter(l=>l.id!==list.id);
+  save();
+  closeSheet('editListSheet');
+  showScreen('lists');
+  toast('Comparison deleted');
+}
+
+/* ══════════════ ADD / EDIT OPTION ══════════════ */
+function currentMeasure(){
+  const list = S.lists.find(l=>l.id===activeOptionListId);
+  return list ? list.measure : 'volume';
+}
+function openOptionSheet_add(listId){
+  const list = S.lists.find(l=>l.id===listId);
+  if(!list) return;
+  editingOptionId = null;
+  activeOptionListId = listId;
+  document.getElementById('optionSheetTitle').textContent = 'Add option';
+  document.getElementById('optLabel').value = '';
+  document.getElementById('optSize').value = '';
+  document.getElementById('optPrice').value = '';
+  document.getElementById('optDiscount').value = '';
+  optState.qty = 1;
+  optState.unit = MEASURES[list.measure].units[0].u;
+  renderUnitSeg(list.measure);
+  document.getElementById('optQtyVal').textContent = '1';
+  renderOptionSheetButtons(false);
+  updateOptionPreview();
+  openSheet('optionSheet');
+}
+function openOptionSheet_byEl(el){
+  const list = S.lists.find(l=>l.id===view.detailListId);
+  if(!list) return;
+  const opt = list.options.find(o=>String(o.id)===String(el.dataset.id));
+  if(!opt) return;
+  editingOptionId = opt.id;
+  activeOptionListId = list.id;
+  document.getElementById('optionSheetTitle').textContent = 'Edit option';
+  document.getElementById('optLabel').value = opt.label || '';
+  document.getElementById('optSize').value = opt.size != null ? opt.size : '';
+  document.getElementById('optPrice').value = opt.price != null ? opt.price : '';
+  document.getElementById('optDiscount').value = opt.discount ? opt.discount : '';
+  optState.qty = opt.qty || 1;
+  optState.unit = opt.unit || MEASURES[list.measure].units[0].u;
+  renderUnitSeg(list.measure);
+  document.getElementById('optQtyVal').textContent = String(optState.qty);
+  renderOptionSheetButtons(true);
+  updateOptionPreview();
+  openSheet('optionSheet');
+}
+function renderUnitSeg(measureKey){
+  const m = MEASURES[measureKey];
+  const box = document.getElementById('unitSeg');
+  if(m.units.length<=1){
+    box.innerHTML = '<div class="seg-static">'+m.units[0].u+'</div>';
+    return;
+  }
+  box.innerHTML = m.units.map(u=>
+    '<button class="seg-btn'+(optState.unit===u.u?' on':'')+'" data-unit="'+u.u+'" onclick="setOptUnit_byEl(this)">'+u.u+'</button>'
+  ).join('');
+}
+function setOptUnit_byEl(el){
+  optState.unit = el.dataset.unit;
+  renderUnitSeg(currentMeasure());
+  updateOptionPreview();
+}
+function qtyStep(d){
+  optState.qty = Math.max(1, (optState.qty||1)+d);
+  document.getElementById('optQtyVal').textContent = String(optState.qty);
+  updateOptionPreview();
+}
+function updateOptionPreview(){
+  const measureKey = currentMeasure();
+  const list = S.lists.find(l=>l.id===activeOptionListId);
+  const scaleKey = scaleOf(list);
+  const size = parseFloat(document.getElementById('optSize').value) || 0;
+  const price = parseFloat(document.getElementById('optPrice').value) || 0;
+  const discount = parseFloat(document.getElementById('optDiscount').value) || 0;
+  const comp = computeOption({ size, unit:optState.unit, qty:optState.qty, price, discount }, measureKey);
+  document.getElementById('optPreview').textContent = comp.valid ? fmtPrimary(measureKey, comp.unitPrice, scaleKey) : '—';
+  const note = document.getElementById('optPreviewNote');
+  if(comp.valid && comp.discount>0){
+    note.textContent = 'after −'+trimNum(comp.discount)+'% · ฿'+trimNum(comp.effectivePrice)+' (was ฿'+trimNum(comp.rawPrice)+')';
+  } else {
+    note.textContent = '';
+  }
+}
+function renderOptionSheetButtons(isEdit){
+  const box = document.getElementById('optionSheetButtons');
+  if(isEdit){
+    box.innerHTML = '<button class="btn btn-outline" onclick="deleteOption()">Delete</button>'+
+      '<button class="btn btn-primary" onclick="saveOption(false)">Save</button>';
+  } else {
+    box.innerHTML = '<button class="btn btn-outline" onclick="saveOption(true)">Save + new</button>'+
+      '<button class="btn btn-primary" onclick="saveOption(false)">Save</button>';
+  }
+}
+function saveOption(andNew){
+  const list = S.lists.find(l=>l.id===activeOptionListId);
+  if(!list) return;
+  const label = document.getElementById('optLabel').value.trim();
+  const size = parseFloat(document.getElementById('optSize').value) || 0;
+  const price = parseFloat(document.getElementById('optPrice').value) || 0;
+  const discount = Math.min(100, Math.max(0, parseFloat(document.getElementById('optDiscount').value) || 0));
+  if(editingOptionId){
+    const opt = list.options.find(o=>o.id===editingOptionId);
+    if(opt) Object.assign(opt, { label, size, unit:optState.unit, qty:optState.qty, price, discount });
+  } else {
+    list.options.push({ id:uid(), label, size, unit:optState.unit, qty:optState.qty, price, discount });
+  }
+  save();
+  renderAll();
+  if(andNew && !editingOptionId){
+    document.getElementById('optLabel').value = '';
+    document.getElementById('optSize').value = '';
+    document.getElementById('optPrice').value = '';
+    document.getElementById('optDiscount').value = '';
+    optState.qty = 1;
+    document.getElementById('optQtyVal').textContent = '1';
+    updateOptionPreview();
+    toast('Option saved — add another');
+    document.getElementById('optLabel').focus();
+  } else {
+    closeSheet('optionSheet');
+    toast('Option saved');
+  }
+}
+function deleteOption(){
+  const list = S.lists.find(l=>l.id===activeOptionListId);
+  if(!list || !editingOptionId) return;
+  if(!confirm('Delete this option?')) return;
+  list.options = list.options.filter(o=>o.id!==editingOptionId);
+  save();
+  renderAll();
+  closeSheet('optionSheet');
+  toast('Option deleted');
+}
+
+/* ══════════════ SETTINGS ══════════════ */
+function renderSettings(){
+  document.querySelectorAll('#themeSeg .seg-btn').forEach(b=>b.classList.toggle('on', b.dataset.theme===S.theme));
+  document.querySelectorAll('#readoutSeg .seg-btn').forEach(b=>b.classList.toggle('on', b.dataset.readout===S.readout));
+  renderCatManageList();
+  try{ renderSync(); }catch(e){}
+}
+function resolveTheme(){
+  if(S.theme==='auto'){
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  return S.theme;
+}
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', resolveTheme());
+}
+function setTheme_byEl(el){
+  S.theme = el.dataset.theme;
+  save();
+  applyTheme();
+  renderSettings();
+}
+function setReadout_byEl(el){
+  S.readout = el.dataset.readout;
+  save();
+  renderSettings();
+  renderDetail();
+}
+function renderCatManageList(){
+  const box = document.getElementById('catManageList');
+  if(!S.categories.length){ box.innerHTML = '<div class="empty">No categories yet.</div>'; return; }
+  box.innerHTML = S.categories.map(c=>{
+    const n = S.lists.filter(l=>l.categoryId===c.id).length;
+    return '<div class="cat-manage-row">'+
+      '<button class="lc-icon icon-emoji" style="'+catIconStyle(c)+'" data-catid="'+c.id+'" onclick="openEmojiPicker_byEl(this)">'+catIconInner(c)+'</button>'+
+      '<input type="text" value="'+esc(c.name)+'" data-catid="'+c.id+'" onchange="renameCategory_byEl(this)">'+
+      '<span class="cat-manage-count">'+n+' list'+(n===1?'':'s')+'</span>'+
+      '<button class="icon-btn" data-catid="'+c.id+'" onclick="deleteCategory_byEl(this)">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'+
+      '</button>'+
+    '</div>';
+  }).join('');
+}
+function renameCategory_byEl(el){
+  const cat = S.categories.find(c=>c.id===el.dataset.catid);
+  if(!cat) return;
+  const name = el.value.trim();
+  if(!name){ el.value = cat.name; return; }
+  cat.name = name;
+  /* keep a user-chosen emoji; only (re)assign one if the icon is missing or a legacy letter */
+  if(!cat.icon || /^[A-Za-z]$/.test(cat.icon)) cat.icon = guessEmoji(name);
+  save();
+  renderAll();
+}
+function deleteCategory_byEl(el){
+  const cat = S.categories.find(c=>c.id===el.dataset.catid);
+  if(!cat) return;
+  const n = S.lists.filter(l=>l.categoryId===cat.id).length;
+  if(n>0){ toast('Move or delete its '+n+' list'+(n===1?'':'s')+' first'); return; }
+  if(!confirm('Delete category "'+cat.name+'"?')) return;
+  S.categories = S.categories.filter(c=>c.id!==cat.id);
+  save();
+  renderAll();
+  toast('Category deleted');
+}
+function addCategorySettings(){
+  const inp = document.getElementById('settingsNewCat');
+  const name = inp.value.trim();
+  if(!name){ toast('Enter a category name'); return; }
+  S.categories.push({ id:uid(), name, icon:guessEmoji(name) });
+  save();
+  inp.value = '';
+  renderAll();
+  toast('Category added');
+}
+
+/* ══════════════ EXPORT / IMPORT ══════════════ */
+function openExport(){
+  document.getElementById('exportTa').value = JSON.stringify(S, null, 2);
+  openSheet('exportModal');
+}
+function copyExport(){
+  copyText(document.getElementById('exportTa').value, 'Backup copied ✓');
+}
+function openImport(){
+  document.getElementById('importTa').value = '';
+  openSheet('importModal');
+}
+function extractJson(txt){
+  txt = String(txt||'').replace(/```json/gi,'```').split('```').join('').trim();
+  const c = txt.indexOf('{');
+  if(c===-1) return null;
+  const end = txt.lastIndexOf('}');
+  if(end<=c) return null;
+  try{ return JSON.parse(txt.slice(c, end+1)); }catch(e){ return null; }
+}
+function runImport(){
+  const raw = document.getElementById('importTa').value;
+  const parsed = extractJson(raw);
+  if(!parsed || !Array.isArray(parsed.lists) || !Array.isArray(parsed.categories)){
+    toast('That JSON doesn’t look like a Price Compare backup');
+    return;
+  }
+  if(!confirm('Replace all current data with this backup?')) return;
+  S = {
+    theme: parsed.theme || 'dark',
+    readout: parsed.readout || 'both',
+    sort: parsed.sort || 'newest',
+    categories: parsed.categories,
+    lists: parsed.lists,
+    updatedAt: 0,
+    drive: S.drive /* keep this device's own Drive connection */
+  };
+  save();
+  applyTheme();
+  closeSheet('importModal');
+  view.detailListId = null;
+  showScreen('dashboard');
+  toast('Backup restored');
+}
+
+/* ══════════════ EMOJI PICKER (category icon) ══════════════ */
+let emojiTargetCatId = null;
+function openEmojiPicker_byEl(el){ openEmojiPicker(el.dataset.catid); }
+function openEmojiPicker(catId){
+  emojiTargetCatId = catId;
+  document.getElementById('emojiGrid').innerHTML = CAT_EMOJIS.map(e=>
+    '<button class="emoji-cell" data-emoji="'+e+'" onclick="pickEmoji_byEl(this)">'+e+'</button>'
+  ).join('');
+  openSheet('emojiSheet');
+}
+function pickEmoji_byEl(el){
+  const cat = S.categories.find(c=>c.id===emojiTargetCatId);
+  if(cat){ cat.icon = el.dataset.emoji; save(); renderAll(); }
+  closeSheet('emojiSheet');
+  toast('Icon updated');
+}
+function triggerImageUpload(){ document.getElementById('iconFileInput').click(); }
+function handleIconFile_byEl(el){
+  const file = el.files && el.files[0];
+  el.value = ''; /* allow re-picking the same file */
+  if(!file) return;
+  if(!/^image\//.test(file.type)){ toast('Please choose an image file'); return; }
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      /* downscale to a small square (cover-fit) so it stays tiny in localStorage */
+      const size = 96;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size/img.width, size/img.height);
+      const w = img.width*scale, h = img.height*scale;
+      ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+      let dataUrl;
+      try{ dataUrl = canvas.toDataURL('image/png'); }
+      catch(e){ toast('Could not process that image'); return; }
+      const cat = S.categories.find(c=>c.id===emojiTargetCatId);
+      if(cat){ cat.icon = dataUrl; save(); renderAll(); }
+      closeSheet('emojiSheet');
+      toast('Image icon set');
+    };
+    img.onerror = function(){ toast('Could not read that image'); };
+    img.src = ev.target.result;
+  };
+  reader.onerror = function(){ toast('Could not read that file'); };
+  reader.readAsDataURL(file);
+}
+
+/* ══════════════ SELECT & DELETE / CLEAR ALL ══════════════ */
+let selDel = new Set();
+function openSelectDelete(){
+  if(!S.lists.length){ toast('No comparisons to delete'); return; }
+  selDel = new Set();
+  renderSelectDelete();
+  openSheet('selectDeleteSheet');
+}
+function renderSelectDelete(){
+  const box = document.getElementById('selectDeleteList');
+  box.innerHTML = S.lists.slice().sort((a,b)=>b.created-a.created).map(l=>{
+    const cat = S.categories.find(c=>c.id===l.categoryId);
+    const on = selDel.has(l.id);
+    return '<div class="sel-row'+(on?' on':'')+'" data-id="'+l.id+'" onclick="toggleSelDel_byEl(this)">'+
+      '<div class="sel-check">'+(on?'✓':'')+'</div>'+
+      '<div class="lc-icon" style="'+catIconStyle(cat)+'">'+catIconInner(cat)+'</div>'+
+      '<div class="sel-main">'+
+        '<div class="sel-name">'+esc(l.name)+'</div>'+
+        '<div class="sel-meta">'+(cat?esc(cat.name):'—')+' · '+l.options.length+' option'+(l.options.length===1?'':'s')+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  const btn = document.getElementById('selDelBtn');
+  const n = selDel.size;
+  btn.textContent = n ? 'Delete selected ('+n+')' : 'Delete selected';
+  btn.disabled = n===0;
+}
+function toggleSelDel_byEl(el){
+  const id = el.dataset.id;
+  if(selDel.has(id)) selDel.delete(id); else selDel.add(id);
+  renderSelectDelete();
+}
+function deleteSelected(){
+  if(!selDel.size) return;
+  if(!confirm('Delete '+selDel.size+' comparison'+(selDel.size===1?'':'s')+'? This cannot be undone.')) return;
+  S.lists = S.lists.filter(l=>!selDel.has(l.id));
+  save();
+  selDel = new Set();
+  closeSheet('selectDeleteSheet');
+  renderAll();
+  toast('Deleted');
+}
+function clearAllData(){
+  if(!confirm('Clear ALL data? This removes every comparison and resets categories to the defaults. This cannot be undone.')) return;
+  S.lists = [];
+  S.categories = seedCategories();
+  view.detailListId = null;
+  view.listsCategoryFilter = 'all';
+  view.listsSearch = '';
+  save();
+  showScreen('dashboard');
+  toast('All data cleared');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   GOOGLE DRIVE SYNC (Phase 2)
+   Layered ON TOP of localStorage: the app always reads/writes locally
+   (instant + offline); Drive is a sync/backup of one JSON file the app
+   owns in your Drive. Requires a Google OAuth Client ID (you create it;
+   paste it in Settings). Scope is `drive.file` — the app only ever sees
+   files it created, nothing else in your Drive.
+   Conflict rule: last-write-wins by S.updatedAt (fine for one person).
+   ══════════════════════════════════════════════════════════════════ */
+const DRIVE = {
+  FILE_NAME: 'pricecompare.json',
+  SCOPES: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email',
+  tokenClient: null, accessToken: null, tokenExpiry: 0,
+  fileId: null, account: null, busy: false
+};
+let syncStatusText = '';
+let drivePushTimer = null;
+let _tokRes = null, _tokRej = null;
+
+function driveConfigured(){ return !!(S.drive && S.drive.clientId); }
+function driveConnected(){ return !!(S.drive && S.drive.connected && DRIVE.accessToken && Date.now() < DRIVE.tokenExpiry); }
+function setSyncStatus(t){ syncStatusText = t; try{ renderSync(); }catch(e){} }
+
+/* load Google Identity Services on demand (never at page load) */
+function ensureGis(cb){
+  if(window.google && google.accounts && google.accounts.oauth2){ cb(); return; }
+  const existing = document.getElementById('gis-script');
+  if(existing){ existing.addEventListener('load', cb); return; }
+  const s = document.createElement('script');
+  s.id = 'gis-script';
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true; s.defer = true;
+  s.onload = ()=>cb();
+  s.onerror = ()=>{ setSyncStatus('Could not load Google sign-in'); };
+  document.head.appendChild(s);
+}
+function driveEnsureClient(){
+  if(!driveConfigured()) throw new Error('No client ID');
+  if(!DRIVE.tokenClient){
+    DRIVE.tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: S.drive.clientId,
+      scope: DRIVE.SCOPES,
+      callback: (resp)=>{
+        if(resp && resp.access_token){
+          DRIVE.accessToken = resp.access_token;
+          DRIVE.tokenExpiry = Date.now() + ((resp.expires_in||3600)*1000) - 60000;
+          if(_tokRes) _tokRes();
+        } else if(_tokRej){ _tokRej(new Error('no token')); }
+        _tokRes = _tokRej = null;
+      },
+      error_callback: (err)=>{ if(_tokRej) _tokRej(err||new Error('token error')); _tokRes=_tokRej=null; }
+    });
+  }
+}
+/* get/refresh an access token; interactive=true allows the account/consent popup */
+function driveGetToken(interactive){
+  return new Promise((resolve, reject)=>{
+    driveEnsureClient();
+    if(DRIVE.accessToken && Date.now() < DRIVE.tokenExpiry){ resolve(); return; }
+    _tokRes = resolve; _tokRej = reject;
+    DRIVE.tokenClient.requestAccessToken(interactive ? {} : { prompt:'' });
+  });
+}
+async function driveApi(url, opts){
+  opts = opts || {};
+  opts.headers = Object.assign({ 'Authorization':'Bearer '+DRIVE.accessToken }, opts.headers||{});
+  const r = await fetch(url, opts);
+  if(!r.ok) throw new Error('Drive API '+r.status);
+  return r;
+}
+async function driveFetchAccount(){
+  try{
+    const r = await driveApi('https://www.googleapis.com/oauth2/v3/userinfo');
+    const d = await r.json();
+    DRIVE.account = d.email || null;
+  }catch(e){ DRIVE.account = null; }
+}
+async function driveFindFile(){
+  const q = encodeURIComponent("name='"+DRIVE.FILE_NAME+"' and trashed=false");
+  const r = await driveApi('https://www.googleapis.com/drive/v3/files?spaces=drive&q='+q+'&fields=files(id,modifiedTime)');
+  const d = await r.json();
+  return (d.files && d.files[0]) || null;
+}
+async function driveReadFile(id){
+  const r = await driveApi('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media');
+  return await r.json();
+}
+function driveStateForUpload(){
+  /* full app data; drive credentials are per-device so they are NOT uploaded */
+  return { theme:S.theme, readout:S.readout, sort:S.sort,
+           categories:S.categories, lists:S.lists, updatedAt:S.updatedAt||0 };
+}
+async function driveCreateFile(obj){
+  const boundary = 'pcsync'+Date.now();
+  const body =
+    '--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+
+    JSON.stringify({ name:DRIVE.FILE_NAME, mimeType:'application/json' })+'\r\n'+
+    '--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+
+    JSON.stringify(obj)+'\r\n--'+boundary+'--';
+  const r = await driveApi('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    method:'POST', headers:{ 'Content-Type':'multipart/related; boundary='+boundary }, body
+  });
+  const d = await r.json();
+  return d.id;
+}
+async function driveUpdateFile(id, obj){
+  await driveApi('https://www.googleapis.com/upload/drive/v3/files/'+id+'?uploadType=media', {
+    method:'PATCH', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(obj)
+  });
+}
+async function drivePushNow(){
+  await driveGetToken(false);
+  if(!DRIVE.fileId){
+    const f = await driveFindFile();
+    DRIVE.fileId = f ? f.id : null;
+  }
+  const obj = driveStateForUpload();
+  if(DRIVE.fileId) await driveUpdateFile(DRIVE.fileId, obj);
+  else DRIVE.fileId = await driveCreateFile(obj);
+  S.drive.lastSync = Date.now(); persistLocal();
+}
+/* pull remote; if newer than local, adopt it; otherwise push local up */
+async function driveSync(){
+  await driveGetToken(false);
+  const f = await driveFindFile();
+  if(f){
+    DRIVE.fileId = f.id;
+    let remote = null;
+    try{ remote = await driveReadFile(f.id); }catch(e){ remote = null; }
+    if(remote && Array.isArray(remote.lists) && Array.isArray(remote.categories) &&
+       (remote.updatedAt||0) > (S.updatedAt||0)){
+      S = Object.assign(S, { theme:remote.theme||S.theme, readout:remote.readout||S.readout,
+        sort:remote.sort||S.sort, categories:remote.categories, lists:remote.lists,
+        updatedAt:remote.updatedAt||0 });
+      persistLocal(); applyTheme(); renderAll();
+      S.drive.lastSync = Date.now(); persistLocal();
+      return 'pulled';
+    }
+  }
+  await drivePushNow();
+  return 'pushed';
+}
+function driveSchedulePush(){
+  if(!(S.drive && S.drive.connected && S.drive.clientId)) return;
+  clearTimeout(drivePushTimer);
+  drivePushTimer = setTimeout(()=>{
+    if(!navigator.onLine){ setSyncStatus('Offline — will sync later'); return; }
+    setSyncStatus('Syncing…');
+    ensureGis(()=>{ drivePushNow().then(()=>setSyncStatus('')).catch(()=>setSyncStatus('Sync error')); });
+  }, 2000);
+}
+/* user taps Connect */
+function connectDrive(){
+  if(!driveConfigured()){ toast('Add your OAuth Client ID first'); return; }
+  setSyncStatus('Connecting…');
+  ensureGis(()=>{
+    driveGetToken(true).then(()=>{
+      return driveFetchAccount();
+    }).then(()=>{
+      S.drive.connected = true; persistLocal();
+      setSyncStatus('Syncing…');
+      return driveSync();
+    }).then((mode)=>{
+      setSyncStatus('');
+      toast(mode==='pulled' ? 'Loaded from Drive' : 'Backed up to Drive');
+      renderSync();
+    }).catch((e)=>{
+      console.warn('connect failed', e);
+      S.drive.connected = false; persistLocal();
+      setSyncStatus('Could not connect — check the Client ID and that this site is an authorized origin');
+    });
+  });
+}
+function syncNow(){
+  if(!driveConnected() && !(S.drive && S.drive.connected)){ connectDrive(); return; }
+  if(!navigator.onLine){ toast('You are offline'); return; }
+  setSyncStatus('Syncing…');
+  ensureGis(()=>{
+    driveSync().then((mode)=>{ setSyncStatus(''); toast(mode==='pulled'?'Loaded from Drive':'Backed up to Drive'); })
+      .catch(()=>setSyncStatus('Sync error'));
+  });
+}
+function disconnectDrive(){
+  try{
+    if(DRIVE.accessToken && window.google && google.accounts && google.accounts.oauth2 && google.accounts.oauth2.revoke){
+      google.accounts.oauth2.revoke(DRIVE.accessToken, ()=>{});
+    }
+  }catch(e){}
+  DRIVE.accessToken = null; DRIVE.tokenExpiry = 0; DRIVE.account = null; DRIVE.fileId = null;
+  if(S.drive){ S.drive.connected = false; }
+  persistLocal();
+  setSyncStatus('');
+  toast('Disconnected — your data stays on this device');
+}
+function saveDriveClientId_byEl(el){
+  const id = el.value.trim();
+  S.drive.clientId = id;
+  DRIVE.tokenClient = null; /* rebuild client next time */
+  persistLocal();
+  renderSync();
+  if(id) toast('Client ID saved');
+}
+function driveAutoReconnect(){
+  if(!(S.drive && S.drive.connected && S.drive.clientId)) return;
+  if(!navigator.onLine){ setSyncStatus('Offline'); return; }
+  setSyncStatus('Reconnecting…');
+  ensureGis(()=>{
+    driveGetToken(false).then(()=>driveFetchAccount()).then(()=>driveSync())
+      .then(()=>setSyncStatus(''))
+      .catch(()=>{ setSyncStatus('Tap Connect to sign in again'); });
+  });
+}
+/* status + buttons are re-rendered on state change; the Client ID input is static
+   (below, in a <details>) so typing it is never interrupted by a re-render */
+function renderSync(){
+  const ci = document.getElementById('driveClientId');
+  if(ci && document.activeElement !== ci) ci.value = (S.drive && S.drive.clientId) || '';
+  const statusBox = document.getElementById('syncStatusBox');
+  const btnBox = document.getElementById('syncButtons');
+  if(!statusBox || !btnBox) return;
+  let status;
+  if(syncStatusText) status = syncStatusText;
+  else if(!driveConfigured()) status = 'Not set up yet — add your OAuth Client ID below.';
+  else if(S.drive.connected){
+    status = 'Connected'+(DRIVE.account?(' · '+DRIVE.account):'')+
+      (S.drive.lastSync?(' · last synced '+new Date(S.drive.lastSync).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})):'');
+  } else status = 'Ready — tap Connect to sign in.';
+  statusBox.textContent = status;
+  let btns = '';
+  if(driveConfigured() && S.drive.connected){
+    btns = '<button class="btn btn-primary btn-block" onclick="syncNow()">Sync now</button>'+
+           '<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="disconnectDrive()">Disconnect</button>';
+  } else if(driveConfigured()){
+    btns = '<button class="btn btn-primary btn-block" onclick="connectDrive()">Connect Google Drive</button>';
+  }
+  btnBox.innerHTML = btns;
+}
+
+/* ══════════════ INIT ══════════════ */
+function seedCategories(){
+  return [
+    { id:uid(), name:'Household', icon:'🏠' },
+    { id:uid(), name:'Personal care', icon:'🧴' },
+    { id:uid(), name:'Groceries', icon:'🛒' },
+    { id:uid(), name:'Drinks', icon:'🥤' }
+  ];
+}
+window.addEventListener('DOMContentLoaded', function(){
+  try{
+    const raw = localStorage.getItem('pricecompare_v1');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      S = Object.assign({ theme:'dark', readout:'both', sort:'newest', categories:[], lists:[], updatedAt:0,
+                          drive:{ clientId:'', connected:false, lastSync:null } }, parsed);
+      if(!Array.isArray(S.categories)) S.categories = [];
+      if(!Array.isArray(S.lists)) S.lists = [];
+      if(!S.drive || typeof S.drive !== 'object') S.drive = { clientId:'', connected:false, lastSync:null };
+    } else {
+      S.categories = seedCategories();
+    }
+    applyTheme();
+    if(window.matchMedia){
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const onChange = ()=>{ if(S.theme==='auto') applyTheme(); };
+      if(mq.addEventListener) mq.addEventListener('change', onChange);
+      else if(mq.addListener) mq.addListener(onChange);
+    }
+    showScreen('dashboard');
+    /* Drive sync: reconnect if this device was connected before, and push when coming back online */
+    try{ driveAutoReconnect(); }catch(e){}
+    window.addEventListener('online', function(){
+      if(S.drive && S.drive.connected){ setSyncStatus('Back online — syncing…'); driveSchedulePush(); }
+    });
+  }catch(e){
+    console.warn('init failed:', e);
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div style="padding:16px;color:#f87171;font-size:14px;">Something went wrong loading the app. Try reloading.</div>');
+  }
+});
+</script>
+</body>
+</html>

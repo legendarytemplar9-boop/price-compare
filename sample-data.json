@@ -1,0 +1,161 @@
+{
+  "theme": "dark",
+  "readout": "both",
+  "sort": "newest",
+  "categories": [
+    {
+      "id": "cat_household",
+      "name": "Household",
+      "icon": "🏠"
+    },
+    {
+      "id": "cat_personal",
+      "name": "Personal care",
+      "icon": "🧴"
+    },
+    {
+      "id": "cat_groceries",
+      "name": "Groceries",
+      "icon": "🛒"
+    },
+    {
+      "id": "cat_drinks",
+      "name": "Drinks",
+      "icon": "🥤"
+    }
+  ],
+  "lists": [
+    {
+      "id": "list_shampoo",
+      "name": "Shampoo 400ml",
+      "categoryId": "cat_personal",
+      "measure": "volume",
+      "created": 1000004,
+      "options": [
+        {
+          "id": "opt_sh1",
+          "label": "7-Eleven",
+          "size": 400,
+          "unit": "ml",
+          "qty": 1,
+          "price": 89
+        },
+        {
+          "id": "opt_sh2",
+          "label": "Big C",
+          "size": 1,
+          "unit": "L",
+          "qty": 1,
+          "price": 180
+        },
+        {
+          "id": "opt_sh3",
+          "label": "Watsons",
+          "size": 250,
+          "unit": "ml",
+          "qty": 1,
+          "price": 55
+        }
+      ]
+    },
+    {
+      "id": "list_dishsoap",
+      "name": "Dish soap refill",
+      "categoryId": "cat_household",
+      "measure": "volume",
+      "created": 1000003,
+      "options": [
+        {
+          "id": "opt_ds1",
+          "label": "Lotus",
+          "size": 500,
+          "unit": "ml",
+          "qty": 1,
+          "price": 39
+        },
+        {
+          "id": "opt_ds2",
+          "label": "Makro",
+          "size": 3.6,
+          "unit": "L",
+          "qty": 1,
+          "price": 199
+        },
+        {
+          "id": "opt_ds3",
+          "label": "Big C twin pack",
+          "size": 900,
+          "unit": "ml",
+          "qty": 2,
+          "price": 130
+        }
+      ]
+    },
+    {
+      "id": "list_rice",
+      "name": "Jasmine rice",
+      "categoryId": "cat_groceries",
+      "measure": "weight",
+      "created": 1000002,
+      "options": [
+        {
+          "id": "opt_ri1",
+          "label": "Makro",
+          "size": 5,
+          "unit": "kg",
+          "qty": 1,
+          "price": 210
+        },
+        {
+          "id": "opt_ri2",
+          "label": "Tesco Lotus",
+          "size": 5,
+          "unit": "kg",
+          "qty": 1,
+          "price": 245
+        },
+        {
+          "id": "opt_ri3",
+          "label": "Big C small",
+          "size": 2,
+          "unit": "kg",
+          "qty": 1,
+          "price": 105
+        }
+      ]
+    },
+    {
+      "id": "list_cola",
+      "name": "Cola cans",
+      "categoryId": "cat_drinks",
+      "measure": "count",
+      "created": 1000001,
+      "options": [
+        {
+          "id": "opt_co1",
+          "label": "7-Eleven",
+          "size": 6,
+          "unit": "pcs",
+          "qty": 1,
+          "price": 90
+        },
+        {
+          "id": "opt_co2",
+          "label": "Makro case",
+          "size": 24,
+          "unit": "pcs",
+          "qty": 1,
+          "price": 300
+        },
+        {
+          "id": "opt_co3",
+          "label": "Big C",
+          "size": 12,
+          "unit": "pcs",
+          "qty": 1,
+          "price": 170
+        }
+      ]
+    }
+  ]
+}
