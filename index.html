@@ -36,8 +36,20 @@
   .content{max-width:520px;margin:0 auto;padding:0 18px calc(110px + var(--sb));}
   .topbar{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + var(--st)) 18px 6px;max-width:520px;margin:0 auto;}
   .topbar h1{font-size:22px;font-weight:700;}
+  .topbar-right{display:flex;align-items:center;gap:6px;}
   .icon-btn{background:none;border:none;color:var(--tx2);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;}
   .icon-btn svg{width:22px;height:22px;}
+  .sync-chip{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card);
+    border-radius:999px;padding:5px 11px 5px 9px;font-size:12px;font-weight:600;color:var(--tx2);
+    cursor:pointer;font-family:var(--fn);white-space:nowrap;}
+  .sync-chip:active{opacity:.7;}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--tx2);flex:0 0 auto;}
+  .sync-dot.ok{background:var(--green);}
+  .sync-dot.busy{background:var(--teal);animation:syncpulse 1s ease-in-out infinite;}
+  .sync-dot.warn{background:var(--amber);}
+  .sync-dot.err{background:var(--danger);}
+  .sync-dot.idle{background:var(--tx2);opacity:.6;}
+  @keyframes syncpulse{0%,100%{opacity:1;}50%{opacity:.25;}}
 
   .detail-header{display:flex;align-items:center;gap:10px;padding:calc(14px + var(--st)) 18px 6px;max-width:520px;margin:0 auto;}
   .detail-header h1{flex:1;font-size:19px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -259,9 +271,12 @@
 <section id="screen-dashboard" class="screen">
   <div class="topbar">
     <h1>Dashboard</h1>
-    <button class="icon-btn" onclick="goSettings()" aria-label="Settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h0a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h0a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
-    </button>
+    <div class="topbar-right">
+      <button class="sync-chip hidden" id="syncChip" onclick="syncChipTap()"><span class="sync-dot"></span><span id="syncChipText">Synced</span></button>
+      <button class="icon-btn" onclick="goSettings()" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h0a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h0a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+      </button>
+    </div>
   </div>
   <div class="content">
     <input class="search" id="dashSearchBox" placeholder="Search lists or categories..." oninput="onDashSearch()">
@@ -782,6 +797,7 @@ function renderDashboard(){
   const totalSavings = S.lists.reduce((sum,l)=>sum+listSavingsBaht(l), 0);
   document.getElementById('statSavings').textContent = '฿'+trimNum(totalSavings);
   renderCatGrid();
+  try{ renderSyncChip(); }catch(e){}
 }
 function renderCatGrid(){
   const box = document.getElementById('catGrid');
@@ -1460,7 +1476,30 @@ let _tokRes = null, _tokRej = null;
 
 function driveConfigured(){ return !!(S.drive && S.drive.clientId); }
 function driveConnected(){ return !!(S.drive && S.drive.connected && DRIVE.accessToken && Date.now() < DRIVE.tokenExpiry); }
-function setSyncStatus(t){ syncStatusText = t; try{ renderSync(); }catch(e){} }
+function setSyncStatus(t){ syncStatusText = t; try{ renderSync(); }catch(e){} try{ renderSyncChip(); }catch(e){} }
+
+/* small sync indicator in the Dashboard header */
+function renderSyncChip(){
+  const chip = document.getElementById('syncChip');
+  if(!chip) return;
+  const txt = document.getElementById('syncChipText');
+  const dot = chip.querySelector('.sync-dot');
+  if(!driveConfigured()){ chip.classList.add('hidden'); return; }
+  chip.classList.remove('hidden');
+  const st = syncStatusText || '';
+  let label, cls;
+  if(!S.drive.connected){ label='Not synced'; cls='idle'; }
+  else if(/Syncing|Connecting|Reconnecting/i.test(st)){ label='Syncing…'; cls='busy'; }
+  else if(!navigator.onLine || /Offline/i.test(st)){ label='Offline'; cls='warn'; }
+  else if(/error|could not|sign in|tap connect/i.test(st)){ label='Sync issue'; cls='err'; }
+  else { label='Synced'; cls='ok'; }
+  txt.textContent = label;
+  dot.className = 'sync-dot '+cls;
+}
+function syncChipTap(){
+  if(S.drive && S.drive.connected) syncNow();
+  else goSettings();
+}
 
 /* load Google Identity Services on demand (never at page load) */
 function ensureGis(cb){
