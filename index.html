@@ -206,7 +206,7 @@
 
   .empty{padding:36px 10px;text-align:center;color:var(--tx2);font-size:14px;line-height:1.5;}
 
-  nav#navbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--card);border-top:1px solid var(--border);
+  nav#navbar{position:fixed;left:0;right:0;bottom:0;z-index:150;background:var(--card);border-top:1px solid var(--border);
     display:flex;height:calc(var(--nh) + var(--sb));padding-bottom:var(--sb);}
   nav#navbar button{flex:1;border:none;background:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--tx2);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
@@ -219,9 +219,12 @@
   .fab .fab-icon{font-size:20px;font-weight:700;}
   .fab .fab-label{font-size:14px;font-weight:700;white-space:nowrap;}
 
-  .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:flex;align-items:flex-end;justify-content:center;}
+  /* sheets slide up ABOVE the bottom tab bar (which stays visible + tappable on every screen) */
+  .sheet-bg{position:fixed;top:0;left:0;right:0;bottom:calc(var(--nh) + var(--sb));background:rgba(0,0,0,.55);
+    z-index:100;display:flex;align-items:flex-end;justify-content:center;}
   @media(min-width:560px){.sheet-bg{align-items:center;}}
-  .sheet{background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:88vh;
+  .sheet{background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:520px;
+    max-height:calc(100vh - var(--nh) - var(--sb) - 16px);
     display:flex;flex-direction:column;overflow:hidden;}
   @media(min-width:560px){.sheet{border-radius:18px;}}
   .sheet-handle{width:36px;height:4px;background:var(--border-dash);border-radius:2px;margin:10px auto 0;}
@@ -753,7 +756,11 @@ function renderReadoutBlock(comp, measureKey, variant, scaleKey){
 }
 
 /* ── navigation ── */
+function closeAllSheets(){
+  document.querySelectorAll('.sheet-bg').forEach(el=>el.classList.add('hidden'));
+}
 function showScreen(name){
+  closeAllSheets(); /* switching main tabs dismisses any open sheet */
   ['dashboard','lists','settings','detail'].forEach(s=>{
     const el = document.getElementById('screen-'+s);
     if(el) el.classList.toggle('hidden', s!==name);
