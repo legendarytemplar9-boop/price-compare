@@ -226,6 +226,7 @@
   @media(min-width:560px){.sheet{border-radius:18px;}}
   .sheet-handle{width:36px;height:4px;background:var(--border-dash);border-radius:2px;margin:10px auto 0;}
   .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 6px;font-size:16px;font-weight:700;}
+  .sheet-header .icon-btn{font-size:30px;line-height:1;padding:2px 8px;color:var(--tx2);}
   .sheet-body{padding:4px 18px calc(18px + var(--sb));overflow-y:auto;}
   .sheet-body label{display:block;font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;
     letter-spacing:.4px;margin:14px 0 6px;}
@@ -414,7 +415,8 @@
       <button class="icon-btn" data-sheet="newCompSheet" onclick="closeSheet_byEl(this)">✕</button></div>
     <div class="sheet-body">
       <label>Name</label>
-      <input type="text" id="ncName" placeholder="e.g. Shampoo 400ml">
+      <input type="text" id="ncName" placeholder="e.g. Shampoo 400ml" list="nameSuggest" autocomplete="off">
+      <datalist id="nameSuggest"></datalist>
       <label>Category</label>
       <div class="cat-picker" id="ncCatPicker"></div>
       <div id="ncNewCatRow" class="hidden">
@@ -457,7 +459,8 @@
       <button class="icon-btn" data-sheet="optionSheet" onclick="closeSheet_byEl(this)">✕</button></div>
     <div class="sheet-body">
       <label>Shop / label</label>
-      <input type="text" id="optLabel" placeholder="e.g. 7-Eleven, Big C, Lotus" oninput="updateOptionPreview()">
+      <input type="text" id="optLabel" placeholder="e.g. 7-Eleven, Big C, Lotus" oninput="updateOptionPreview()" list="labelSuggest" autocomplete="off">
+      <datalist id="labelSuggest"></datalist>
       <label>Size</label>
       <div class="size-row">
         <input type="number" inputmode="decimal" id="optSize" placeholder="0" oninput="updateOptionPreview()">
@@ -1005,9 +1008,26 @@ function renderInvalidRow(x){
   '</div>';
 }
 
+/* fill a <datalist> with the unique, previously-used values so repeats autocomplete */
+function buildDatalist(id, values){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const seen = {}, uniq = [];
+  values.forEach(v=>{ v = String(v==null?'':v).trim(); const k = v.toLowerCase();
+    if(v && !seen[k]){ seen[k] = 1; uniq.push(v); } });
+  uniq.sort((a,b)=>a.localeCompare(b));
+  el.innerHTML = uniq.map(v=>'<option value="'+esc(v)+'"></option>').join('');
+}
+function allOptionLabels(){
+  const out = [];
+  S.lists.forEach(l=>l.options.forEach(o=>{ if(o.label) out.push(o.label); }));
+  return out;
+}
+
 /* ══════════════ NEW COMPARISON ══════════════ */
 function openNewComparison(){
   document.getElementById('ncName').value = '';
+  buildDatalist('nameSuggest', S.lists.map(l=>l.name));
   ncState.categoryId = S.categories.length ? S.categories[0].id : null;
   ncState.measure = 'volume';
   document.getElementById('ncNewCatRow').classList.add('hidden');
@@ -1110,6 +1130,7 @@ function openOptionSheet_add(listId){
   if(!list) return;
   editingOptionId = null;
   activeOptionListId = listId;
+  buildDatalist('labelSuggest', allOptionLabels());
   document.getElementById('optionSheetTitle').textContent = 'Add option';
   document.getElementById('optLabel').value = '';
   document.getElementById('optSize').value = '';
@@ -1130,6 +1151,7 @@ function openOptionSheet_byEl(el){
   if(!opt) return;
   editingOptionId = opt.id;
   activeOptionListId = list.id;
+  buildDatalist('labelSuggest', allOptionLabels());
   document.getElementById('optionSheetTitle').textContent = 'Edit option';
   document.getElementById('optLabel').value = opt.label || '';
   document.getElementById('optSize').value = opt.size != null ? opt.size : '';
