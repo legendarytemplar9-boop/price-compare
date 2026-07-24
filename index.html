@@ -164,6 +164,8 @@
   .hint{font-size:12.5px;color:var(--tx2);line-height:1.5;}
   .sync-steps{margin:6px 0 0 18px;} .sync-steps li{margin-bottom:5px;}
   #syncButtons:not(:empty){margin-top:12px;}
+  .sync-hint{font-size:12.5px;color:var(--tx2);line-height:1.5;margin-bottom:12px;}
+  .sync-sub{font-weight:400;font-size:12px;opacity:.85;}
 
   .cat-manage-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
   .cat-manage-row:last-child{border-bottom:none;}
@@ -1520,18 +1522,16 @@ function renderSyncChip(){
   chip.classList.remove('hidden');
   const st = syncStatusText || '';
   let label, cls;
-  if(!S.drive.connected){ label='Not synced'; cls='idle'; }
+  if(!S.drive.connected){ label='Not connected'; cls='idle'; }
   else if(/Syncing|Connecting|Reconnecting/i.test(st)){ label='Syncing…'; cls='busy'; }
   else if(!navigator.onLine || /Offline/i.test(st)){ label='Offline'; cls='warn'; }
-  else if(/error|could not|sign in|tap connect/i.test(st)){ label='Sync issue'; cls='err'; }
+  else if(/error|could not|sign in|tap connect/i.test(st)){ label='Reconnect'; cls='err'; }
   else { label='Synced'; cls='ok'; }
   txt.textContent = label;
   dot.className = 'sync-dot '+cls;
 }
-function syncChipTap(){
-  if(S.drive && S.drive.connected) syncNow();
-  else goSettings();
-}
+/* the chip only reflects status; it opens Settings where the labelled actions live (no ambiguous tap-to-sync) */
+function syncChipTap(){ goSettings(); }
 
 /* load Google Identity Services on demand (never at page load) */
 function ensureGis(cb){
@@ -1683,14 +1683,38 @@ function connectDrive(){
     });
   });
 }
-function syncNow(){
-  if(!driveConnected() && !(S.drive && S.drive.connected)){ connectDrive(); return; }
+/* explicit, direction-labelled manual sync. Day-to-day sync is automatic;
+   these let the user force a direction (e.g. after editing on another device). */
+function pushToCloud(){   /* THIS DEVICE → cloud (overwrites the cloud copy) */
+  if(!(S.drive && S.drive.connected)){ connectDrive(); return; }
   if(!navigator.onLine){ toast('You are offline'); return; }
+  if(!confirm('Sync TO cloud?\n\nUploads this phone/computer\'s data to the cloud and replaces the cloud copy.')) return;
   setSyncStatus('Syncing…');
-  ensureGis(()=>{
-    driveSync().then((mode)=>{ setSyncStatus(''); toast(mode==='pulled'?'Loaded from Drive':'Backed up to Drive'); })
-      .catch(()=>setSyncStatus('Sync error'));
-  });
+  ensureGis(()=>{ drivePushNow().then(()=>{ setSyncStatus(''); toast('Saved to cloud ✓'); })
+    .catch(()=>setSyncStatus('Sync error')); });
+}
+function pullFromCloud(){ /* cloud → THIS DEVICE (overwrites what's on this device) */
+  if(!(S.drive && S.drive.connected)){ connectDrive(); return; }
+  if(!navigator.onLine){ toast('You are offline'); return; }
+  if(!confirm('Sync FROM cloud?\n\nDownloads the cloud copy to this device and replaces the data currently on it.')) return;
+  setSyncStatus('Syncing…');
+  ensureGis(()=>{ driveForcePull().then((ok)=>{ setSyncStatus(''); toast(ok?'Loaded from cloud ✓':'No cloud data found yet'); })
+    .catch(()=>setSyncStatus('Sync error')); });
+}
+async function driveForcePull(){
+  await driveGetToken(false);
+  const f = await driveFindFile();
+  if(!f) return false;
+  DRIVE.fileId = f.id;
+  const remote = await driveReadFile(f.id);
+  if(remote && Array.isArray(remote.lists) && Array.isArray(remote.categories)){
+    S = Object.assign(S, { theme:remote.theme||S.theme, readout:remote.readout||S.readout,
+      sort:remote.sort||S.sort, categories:remote.categories, lists:remote.lists, updatedAt:remote.updatedAt||Date.now() });
+    persistLocal(); applyTheme(); renderAll();
+    S.drive.lastSync = Date.now(); persistLocal();
+    return true;
+  }
+  return false;
 }
 function disconnectDrive(){
   try{
@@ -1740,8 +1764,10 @@ function renderSync(){
   statusBox.textContent = status;
   let btns = '';
   if(driveConfigured() && S.drive.connected){
-    btns = '<button class="btn btn-primary btn-block" onclick="syncNow()">Sync now</button>'+
-           '<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="disconnectDrive()">Disconnect</button>';
+    btns = '<div class="sync-hint">Syncs automatically. Use these only to force a direction — e.g. after editing on another device.</div>'+
+           '<button class="btn btn-primary btn-block" onclick="pushToCloud()">⬆ Sync to cloud <span class="sync-sub">(upload this device)</span></button>'+
+           '<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="pullFromCloud()">⬇ Sync from cloud <span class="sync-sub">(download to this device)</span></button>'+
+           '<button class="btn btn-outline btn-block" style="margin-top:14px;" onclick="disconnectDrive()">Disconnect</button>';
   } else if(driveConfigured()){
     btns = '<button class="btn btn-primary btn-block" onclick="connectDrive()">Connect Google Drive</button>';
   }
