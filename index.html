@@ -758,8 +758,11 @@ function showScreen(name){
     const el = document.getElementById('screen-'+s);
     if(el) el.classList.toggle('hidden', s!==name);
   });
-  document.querySelectorAll('nav#navbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===name));
-  document.getElementById('navbar').classList.toggle('hidden', name==='detail');
+  /* the comparison detail is reached from Lists, so highlight Lists there;
+     the bottom tab bar stays visible on every screen for quick switching */
+  const navActive = (name==='detail') ? 'lists' : name;
+  document.querySelectorAll('nav#navbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===navActive));
+  document.getElementById('navbar').classList.remove('hidden');
   view.screen = name;
   window.scrollTo(0,0);
   renderAll();
