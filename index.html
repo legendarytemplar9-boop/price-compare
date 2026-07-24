@@ -1688,7 +1688,7 @@ function connectDrive(){
 function pushToCloud(){   /* THIS DEVICE → cloud (overwrites the cloud copy) */
   if(!(S.drive && S.drive.connected)){ connectDrive(); return; }
   if(!navigator.onLine){ toast('You are offline'); return; }
-  if(!confirm('Sync TO cloud?\n\nUploads this phone/computer\'s data to the cloud and replaces the cloud copy.')) return;
+  if(!confirm('Save to cloud?\n\nUploads this phone/computer\'s data to the cloud and replaces the cloud copy.')) return;
   setSyncStatus('Syncing…');
   ensureGis(()=>{ drivePushNow().then(()=>{ setSyncStatus(''); toast('Saved to cloud ✓'); })
     .catch(()=>setSyncStatus('Sync error')); });
@@ -1696,7 +1696,7 @@ function pushToCloud(){   /* THIS DEVICE → cloud (overwrites the cloud copy) *
 function pullFromCloud(){ /* cloud → THIS DEVICE (overwrites what's on this device) */
   if(!(S.drive && S.drive.connected)){ connectDrive(); return; }
   if(!navigator.onLine){ toast('You are offline'); return; }
-  if(!confirm('Sync FROM cloud?\n\nDownloads the cloud copy to this device and replaces the data currently on it.')) return;
+  if(!confirm('Load from cloud?\n\nDownloads the cloud copy to this device and replaces the data currently on it.')) return;
   setSyncStatus('Syncing…');
   ensureGis(()=>{ driveForcePull().then((ok)=>{ setSyncStatus(''); toast(ok?'Loaded from cloud ✓':'No cloud data found yet'); })
     .catch(()=>setSyncStatus('Sync error')); });
@@ -1765,8 +1765,8 @@ function renderSync(){
   let btns = '';
   if(driveConfigured() && S.drive.connected){
     btns = '<div class="sync-hint">Syncs automatically. Use these only to force a direction — e.g. after editing on another device.</div>'+
-           '<button class="btn btn-primary btn-block" onclick="pushToCloud()">⬆ Sync to cloud <span class="sync-sub">(upload this device)</span></button>'+
-           '<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="pullFromCloud()">⬇ Sync from cloud <span class="sync-sub">(download to this device)</span></button>'+
+           '<button class="btn btn-primary btn-block" onclick="pushToCloud()">⬆ Save to cloud <span class="sync-sub">(upload this device)</span></button>'+
+           '<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="pullFromCloud()">⬇ Load from cloud <span class="sync-sub">(download to this device)</span></button>'+
            '<button class="btn btn-outline btn-block" style="margin-top:14px;" onclick="disconnectDrive()">Disconnect</button>';
   } else if(driveConfigured()){
     btns = '<button class="btn btn-primary btn-block" onclick="connectDrive()">Connect Google Drive</button>';
