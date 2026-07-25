@@ -960,10 +960,11 @@ function renderDetail(){
   }
   const best = valid[0];
   const worst = valid[valid.length-1];
-  const pct = valid.length>=2 ? (worst.comp.primary-best.comp.primary)/worst.comp.primary*100 : 0;
-  heroBox.innerHTML = renderHeroCard(best, list.measure, pct>=0.5?pct:0, scaleKey);
+  const pct = valid.length>=2 && worst.comp.unitPrice>0 ? (worst.comp.unitPrice-best.comp.unitPrice)/worst.comp.unitPrice*100 : 0;
+  const heroDiff = valid.length>=2 ? (worst.comp.unitPrice - best.comp.unitPrice) : 0;
+  heroBox.innerHTML = renderHeroCard(best, list.measure, pct>=0.5?pct:0, scaleKey, heroDiff);
   const rest = valid.slice(1);
-  let html = rest.map((x,i)=>renderRankRow(x, i+2, best.comp.primary, list.measure, scaleKey)).join('');
+  let html = rest.map((x,i)=>renderRankRow(x, i+2, best.comp.unitPrice, list.measure, scaleKey)).join('');
   html += invalid.map(x=>renderInvalidRow(x)).join('');
   rankBox.innerHTML = html;
 }
@@ -988,16 +989,17 @@ function setDetailScale_byEl(el){
   save();
   renderAll();
 }
-function renderHeroCard(x, measureKey, pct, scaleKey){
+function renderHeroCard(x, measureKey, pct, scaleKey, diffUnit){
   return '<div class="hero-card" data-id="'+x.opt.id+'" onclick="openOptionSheet_byEl(this)">'+
     '<div class="hero-label">'+esc(x.opt.label||'Unnamed')+'</div>'+
     '<div class="hero-sub">'+fmtOptionSub(x.opt, measureKey)+'</div>'+
     renderReadoutBlock(x.comp, measureKey, 'hero', scaleKey)+
-    (pct>0 ? '<div class="pill pill-green">save '+fmtPct(pct)+'</div>' : '')+
+    (pct>0 ? '<div class="pill pill-green">save '+fmtPct(pct)+' · '+fmtPrimary(measureKey, diffUnit, scaleKey)+'</div>' : '')+
   '</div>';
 }
-function renderRankRow(x, rank, bestPrimary, measureKey, scaleKey){
-  const pct = bestPrimary>0 ? (x.comp.primary-bestPrimary)/bestPrimary*100 : 0;
+function renderRankRow(x, rank, bestUnit, measureKey, scaleKey){
+  const pct = bestUnit>0 ? (x.comp.unitPrice-bestUnit)/bestUnit*100 : 0;
+  const diffUnit = x.comp.unitPrice - bestUnit;
   return '<div class="rank-row" data-id="'+x.opt.id+'" onclick="openOptionSheet_byEl(this)">'+
     '<div class="rank-num">'+rank+'</div>'+
     '<div class="rank-main">'+
@@ -1006,7 +1008,7 @@ function renderRankRow(x, rank, bestPrimary, measureKey, scaleKey){
     '</div>'+
     '<div class="rank-values">'+
       renderReadoutBlock(x.comp, measureKey, 'rank', scaleKey)+
-      (pct>=0.5 ? '<div class="pill pill-amber">+'+fmtPct(pct)+'</div>' : '')+
+      (pct>=0.5 ? '<div class="pill pill-amber">+'+fmtPct(pct)+' · '+fmtPrimary(measureKey, diffUnit, scaleKey)+'</div>' : '')+
     '</div>'+
   '</div>';
 }
